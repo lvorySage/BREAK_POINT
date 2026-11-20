@@ -13,9 +13,9 @@ namespace BreachPoint
         Text _atkTitle, _defTitle, _timer, _half, _stolen, _shieldName, _defStats, _alert, _big, _stunText;
         RectTransform _stolenFill;
         Image _atkEdge, _defEdge;
-        readonly Image[] _atkChip = new Image[3], _defChip = new Image[3];
-        readonly RectTransform[] _atkCd = new RectTransform[3];
-        readonly Text[] _atkChipText = new Text[3], _defChipText = new Text[3];
+        readonly Image[] _atkChip = new Image[Attacks.Count], _defChip = new Image[Attacks.Count];
+        readonly RectTransform[] _atkCd = new RectTransform[Attacks.Count];
+        readonly Text[] _atkChipText = new Text[Attacks.Count], _defChipText = new Text[Attacks.Count];
         float _alertUntil, _bigFadeAt = -1f, _bigFadeLen;
 
         public FirewallHud(FirewallArena g, Session s)
@@ -26,33 +26,33 @@ namespace BreachPoint
             var root = _canvas.transform;
 
             // Attacker panel (top-left)
-            var atk = Ui.Panel(root, Palette.Panel, new Vector2(0, 1), new Vector2(0, 1), new Vector2(24, -232), new Vector2(664, -24), "Attacker");
+            var atk = Ui.Panel(root, Palette.Panel, new Vector2(0, 1), new Vector2(0, 1), new Vector2(24, -232), new Vector2(784, -24), "Attacker");
             _atkEdge = Ui.Panel(atk.transform, Color.white, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -6), Vector2.zero, "Edge");
             _atkTitle = Ui.Label(atk.transform, "", 34, Color.white, TextAnchor.UpperLeft, new Vector2(0, 1), new Vector2(1, 1), new Vector2(20, -56), new Vector2(-20, -12), Fonts.Title);
             Ui.Label(atk.transform, "DATA STOLEN", 22, Palette.Muted, TextAnchor.MiddleLeft, new Vector2(0, 1), new Vector2(1, 1), new Vector2(20, -92), new Vector2(-20, -62));
             _stolen = Ui.Label(atk.transform, "0%", 30, Palette.Bad, TextAnchor.MiddleRight, new Vector2(0, 1), new Vector2(1, 1), new Vector2(20, -94), new Vector2(-20, -60));
             _stolenFill = Ui.Bar(atk.transform, new Vector2(0, 1), new Vector2(1, 1), new Vector2(20, -120), new Vector2(-20, -98), Palette.Bad);
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < Attacks.Count; i++)
             {
-                float x0 = 20 + i * 205;
-                _atkChip[i] = Ui.Panel(atk.transform, new Color(0, 0, 0, 0.5f), new Vector2(0, 1), new Vector2(0, 1), new Vector2(x0, -196), new Vector2(x0 + 195, -134), "Chip");
+                float x0 = 20 + i * 182;
+                _atkChip[i] = Ui.Panel(atk.transform, new Color(0, 0, 0, 0.5f), new Vector2(0, 1), new Vector2(0, 1), new Vector2(x0, -196), new Vector2(x0 + 174, -134), "Chip");
                 _atkCd[i] = Ui.Panel(_atkChip[i].transform, new Color(0, 0, 0, 0.6f), Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, "Cooldown").rectTransform;
-                _atkChipText[i] = Ui.Fill(_atkChip[i].transform, "", 24, Color.white);
+                _atkChipText[i] = Ui.Fill(_atkChip[i].transform, "", 21, Color.white);
             }
             _stunText = Ui.Label(atk.transform, "", 26, Palette.Gold, TextAnchor.MiddleCenter, new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, -40), new Vector2(0, -4));
 
             // Defender panel (top-right)
-            var def = Ui.Panel(root, Palette.Panel, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-664, -232), new Vector2(-24, -24), "Defender");
+            var def = Ui.Panel(root, Palette.Panel, new Vector2(1, 1), new Vector2(1, 1), new Vector2(-784, -232), new Vector2(-24, -24), "Defender");
             _defEdge = Ui.Panel(def.transform, Color.white, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -6), Vector2.zero, "Edge");
             _defTitle = Ui.Label(def.transform, "", 34, Color.white, TextAnchor.UpperRight, new Vector2(0, 1), new Vector2(1, 1), new Vector2(20, -56), new Vector2(-20, -12), Fonts.Title);
             Ui.Label(def.transform, "SHIELD", 22, Palette.Muted, TextAnchor.MiddleLeft, new Vector2(0, 1), new Vector2(1, 1), new Vector2(20, -92), new Vector2(-20, -62));
             _shieldName = Ui.Label(def.transform, "", 34, Color.white, TextAnchor.MiddleRight, new Vector2(0, 1), new Vector2(1, 1), new Vector2(20, -100), new Vector2(-20, -58));
             _defStats = Ui.Label(def.transform, "", 22, Palette.Muted, TextAnchor.MiddleLeft, new Vector2(0, 1), new Vector2(1, 1), new Vector2(20, -128), new Vector2(-20, -100));
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < Attacks.Count; i++)
             {
-                float x0 = 20 + i * 205;
-                _defChip[i] = Ui.Panel(def.transform, new Color(0, 0, 0, 0.5f), new Vector2(0, 1), new Vector2(0, 1), new Vector2(x0, -196), new Vector2(x0 + 195, -134), "Chip");
-                _defChipText[i] = Ui.Fill(_defChip[i].transform, "", 22, Color.white);
+                float x0 = 20 + i * 182;
+                _defChip[i] = Ui.Panel(def.transform, new Color(0, 0, 0, 0.5f), new Vector2(0, 1), new Vector2(0, 1), new Vector2(x0, -196), new Vector2(x0 + 174, -134), "Chip");
+                _defChipText[i] = Ui.Fill(_defChip[i].transform, "", 21, Color.white);
             }
 
             // Timer (top-centre)
@@ -61,13 +61,12 @@ namespace BreachPoint
             _half = Ui.Label(tbox.transform, "", 22, Palette.Muted, TextAnchor.MiddleCenter, new Vector2(0, 0), new Vector2(1, 0.32f));
 
             // Legend (bottom-centre): the core lesson, always visible.
-            var legend = Ui.Panel(root, Palette.Panel, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(-780, 20), new Vector2(780, 84), "Legend");
-            string[] pads = { "A/✕", "B/○", "X/□" };
-            for (int i = 0; i < 3; i++)
+            var legend = Ui.Panel(root, Palette.Panel, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(-900, 20), new Vector2(900, 84), "Legend");
+            for (int i = 0; i < Attacks.Count; i++)
             {
                 var t = (AttackType)i;
-                Ui.Label(legend.transform, $"{pads[i]}  {Attacks.Name(t)} → {Attacks.Defense(t)}", 28, Attacks.Color(t), TextAnchor.MiddleCenter,
-                    new Vector2(i / 3f, 0), new Vector2((i + 1) / 3f, 1));
+                Ui.Label(legend.transform, $"{Attacks.PadLabels[i]}  {Attacks.Name(t)} → {Attacks.Defense(t)}", 26, Attacks.Color(t), TextAnchor.MiddleCenter,
+                    new Vector2(i / (float)Attacks.Count, 0), new Vector2((i + 1) / (float)Attacks.Count, 1));
             }
 
             _alert = Ui.Label(root, "", 40, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0), new Vector2(1f, 0), new Vector2(0, 110), new Vector2(-40, 170));
@@ -92,10 +91,10 @@ namespace BreachPoint
             _defTitle.color = d.Color;
             _defEdge.color = d.Color;
             _half.text = _g.Half == 0 ? "HALF 1 / 2 · ROLES SWAP NEXT" : "HALF 2 / 2 · FINAL";
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < Attacks.Count; i++)
             {
                 var t = (AttackType)i;
-                _atkChipText[i].text = $"{a.Controls.ButtonName(i)}  {Attacks.Name(t)}";
+                _atkChipText[i].text = $"{a.Controls.ButtonName(i)}  {(t == AttackType.Password ? "PASSWORD" : Attacks.Name(t))}";
                 _atkChipText[i].color = Attacks.Color(t);
                 _defChipText[i].text = $"{d.Controls.ButtonName(i)}  {Attacks.Defense(t)}";
             }
@@ -111,7 +110,7 @@ namespace BreachPoint
 
             _stolen.text = $"{_g.StolenThisHalf:0}%";
             Ui.SetBar(_stolenFill, _g.StolenThisHalf / 100f);
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < Attacks.Count; i++)
             {
                 float cd = _g.CooldownLeft((AttackType)i);
                 float max = Mathf.Max(Attacks.Cooldown((AttackType)i), FirewallArena.GlobalCooldown);
@@ -123,7 +122,7 @@ namespace BreachPoint
             var sh = _g.Shield;
             _shieldName.text = Attacks.Defense(sh);
             _shieldName.color = Attacks.Color(sh);
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < Attacks.Count; i++)
             {
                 bool on = (int)sh == i;
                 var c = Attacks.Color((AttackType)i);

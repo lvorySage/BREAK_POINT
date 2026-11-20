@@ -7,8 +7,8 @@ namespace BreachPoint
     public enum ControlKind { Gamepad, KeyboardLeft, KeyboardRight, Cpu }
 
     /// <summary>
-    /// One player's input, whatever the device. Actions 0/1/2 are the three colour buttons
-    /// (A·Cross / B·Circle / X·Square on pads; F G H or 1 2 3 on keyboards).
+    /// One player's input, whatever the device. Actions 0-3 are the four face buttons
+    /// (A·Cross / B·Circle / X·Square / Y·Triangle on pads; F G H T or 1 2 3 4 on keyboards).
     /// CPU players are driven by writing the Cpu* fields.
     /// </summary>
     public sealed class PlayerControls
@@ -43,15 +43,15 @@ namespace BreachPoint
         public string DeviceLabel => Kind switch
         {
             ControlKind.Gamepad => Pad != null ? Pad.displayName : "Gamepad",
-            ControlKind.KeyboardLeft => "Keyboard · WASD + F G H",
-            ControlKind.KeyboardRight => "Keyboard · Arrows + 1 2 3",
+            ControlKind.KeyboardLeft => "Keyboard · WASD + F G H T",
+            ControlKind.KeyboardRight => "Keyboard · Arrows + 1 2 3 4",
             _ => "CPU opponent",
         };
 
-        static readonly string[] Xbox = { "A", "B", "X" };
-        static readonly string[] PlayStation = { "✕", "○", "□" };
-        static readonly string[] KeysLeft = { "F", "G", "H" };
-        static readonly string[] KeysRight = { "1", "2", "3" };
+        static readonly string[] Xbox = { "A", "B", "X", "Y" };
+        static readonly string[] PlayStation = { "✕", "○", "□", "△" };
+        static readonly string[] KeysLeft = { "F", "G", "H", "T" };
+        static readonly string[] KeysRight = { "1", "2", "3", "4" };
 
         public string ButtonName(int action) => Kind switch
         {
@@ -109,14 +109,16 @@ namespace BreachPoint
                     {
                         0 => Pad.buttonSouth.wasPressedThisFrame,
                         1 => Pad.buttonEast.wasPressedThisFrame,
-                        _ => Pad.buttonWest.wasPressedThisFrame,
+                        2 => Pad.buttonWest.wasPressedThisFrame,
+                        _ => Pad.buttonNorth.wasPressedThisFrame,
                     };
                 case ControlKind.KeyboardLeft:
-                    return Down(i == 0 ? Key.F : i == 1 ? Key.G : Key.H);
+                    return Down(i == 0 ? Key.F : i == 1 ? Key.G : i == 2 ? Key.H : Key.T);
                 case ControlKind.KeyboardRight:
                     return i == 0 ? Down(Key.Numpad1) || Down(Key.Digit1)
                          : i == 1 ? Down(Key.Numpad2) || Down(Key.Digit2)
-                         : Down(Key.Numpad3) || Down(Key.Digit3);
+                         : i == 2 ? Down(Key.Numpad3) || Down(Key.Digit3)
+                         : Down(Key.Numpad4) || Down(Key.Digit4);
                 default:
                     if (CpuAction != i) return false;
                     CpuAction = -1;
@@ -126,7 +128,7 @@ namespace BreachPoint
 
         public bool ConfirmDown => Kind switch
         {
-            ControlKind.Gamepad => Pad != null && (Pad.buttonSouth.wasPressedThisFrame || Pad.startButton.wasPressedThisFrame),
+            ControlKind.Gamepad => Pad != null && Pad.buttonSouth.wasPressedThisFrame, // Start is reserved for pause
             ControlKind.KeyboardLeft => Down(Key.F) || Down(Key.Space),
             ControlKind.KeyboardRight => Down(Key.Numpad1) || Down(Key.Digit1) || Down(Key.Enter) || Down(Key.NumpadEnter),
             _ => false,
@@ -143,7 +145,7 @@ namespace BreachPoint
         public bool PauseDown => Kind switch
         {
             ControlKind.Gamepad => Pad != null && Pad.startButton.wasPressedThisFrame,
-            ControlKind.KeyboardLeft or ControlKind.KeyboardRight => Down(Key.Escape),
+            ControlKind.KeyboardLeft or ControlKind.KeyboardRight => Down(Key.Escape) || Down(Key.P),
             _ => false,
         };
 

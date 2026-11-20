@@ -19,6 +19,9 @@ namespace BreachPoint
         public const float ShieldRadius = 2.5f;
         public const float GlobalCooldown = 0.3f;
         public const float StunSeconds = 1.2f;
+        public const int BlockPoints = 5;
+        public const float FortFrontX = 14.6f;
+        public const float GateHalfWidth = 1.7f;
 
         public float HalfSeconds = 60f;
         public bool AiEnabled = true;
@@ -32,8 +35,8 @@ namespace BreachPoint
         public readonly float[] StolenAsAttacker = new float[2];
         public readonly int[] Blocks = new int[2];
         public readonly int[] WrongDefenses = new int[2];
-        public readonly int[] HitsByType = new int[3];
-        public readonly int[] FiredByType = new int[3];
+        public readonly int[] HitsByType = new int[Attacks.Count];
+        public readonly int[] FiredByType = new int[Attacks.Count];
 
         // ---- current half ----
         public int Half { get; private set; }
@@ -56,7 +59,7 @@ namespace BreachPoint
         bool _playing, _built;
         AttackType _shield;
         int _lane = 1;
-        readonly float[] _cd = new float[3];
+        readonly float[] _cd = new float[Attacks.Count];
         float _globalCd, _stun, _wrongFlash, _blockFlash, _shake;
 
         sealed class Shot
@@ -101,7 +104,7 @@ namespace BreachPoint
             StolenThisHalf = 0;
             _stun = 0;
             _globalCd = 0;
-            for (int i = 0; i < 3; i++) _cd[i] = 0;
+            for (int i = 0; i < Attacks.Count; i++) _cd[i] = 0;
             _shield = AttackType.Phishing;
             _lane = 1;
             _veh[AttackerIndex].Teleport(new Vector3(-12f, 0, 0));
@@ -176,7 +179,7 @@ namespace BreachPoint
 
         void Update()
         {
-            if (!ManualStep && _playing && (_flow == null || !_flow.Paused)) Step(Time.deltaTime);
+            if (!ManualStep && _playing && (_flow == null || !_flow.InputBlocked)) Step(Time.deltaTime);
             else if (_built && !_playing) UpdateVisuals(Time.deltaTime);
         }
 
@@ -217,14 +220,14 @@ namespace BreachPoint
             av.Face(_servers[_lane].Pos - av.transform.position);
             _stun = Mathf.Max(0, _stun - dt);
             _globalCd = Mathf.Max(0, _globalCd - dt);
-            for (int i = 0; i < 3; i++) _cd[i] = Mathf.Max(0, _cd[i] - dt);
-            for (int i = 0; i < 3; i++) if (atk.ActionDown(i)) TryFire((AttackType)i);
+            for (int i = 0; i < Attacks.Count; i++) _cd[i] = Mathf.Max(0, _cd[i] - dt);
+            for (int i = 0; i < Attacks.Count; i++) if (atk.ActionDown(i)) TryFire((AttackType)i);
 
             // Defender
             var dv = _veh[DefenderIndex];
             dv.Drive(def.Move, def.Boost, dt, DefenderZone);
             dv.Face(Vector3.left);
-            for (int i = 0; i < 3; i++) if (def.ActionDown(i)) SetShield((AttackType)i);
+            for (int i = 0; i < Attacks.Count; i++) if (def.ActionDown(i)) SetShield((AttackType)i);
 
             UpdateShots(dt);
             UpdateVisuals(dt);
@@ -283,6 +286,13 @@ namespace BreachPoint
                     var d = Quaternion.Euler(0, k * 7f, 0) * dir;
                     SpawnShot(t, origin, d * Attacks.Speed(t), 0.32f, Attacks.Value(t), k == 0 ? hint : null, burst);
                 }
+            }
+            else if (t == AttackType.Password)
+            {
+                // A chain of login attempts in single file: MFA stops the whole chain.
+                int burst = ++_nextBurst;
+                for (int k = 0; k < 3; k++)
+                    SpawnShot(t, origin - dir * (k * 1.3f), dir * Attacks.Speed(t), 0.36f, Attacks.Value(t), k == 0 ? hint : null, burst);
             }
             else
             {
@@ -348,6 +358,12 @@ namespace BreachPoint
                     if (_shield == s.Type) Reflect(s); else Pass(s);
                 }
 
+                if (!s.Reflected && s.Pos.x > FortFrontX - 0.4f && s.Pos.x < FortFrontX + 0.4f && !InGate(s.Pos.z))
+                {
+                    Kill(s); // stray shots hit the fort wall
+                    continue;
+                }
+
                 if (!s.Reflected)
                 {
                     for (int i = 0; i < _servers.Length && !s.Dead; i++)
@@ -365,6 +381,12 @@ namespace BreachPoint
 
         static Vector3 Flat(Vector3 v) { v.y = 0; return v; }
 
+        static bool InGate(float z)
+        {
+            foreach (var lane in Lanes) if (Mathf.Abs(z - lane) < GateHalfWidth) return true;
+            return false;
+        }
+
         void Reflect(Shot s)
         {
             s.Reflected = true;
@@ -376,7 +398,7 @@ namespace BreachPoint
             bool flood = s.Burst > 0;
             if (flood)
             {
-                // Rate limiting stops the whole flood, not just one packet.
+                // Rate limiting / MFA stop the whole burst, not just one packet.
                 foreach (var o in _shots)
                     if (o != s && o.Burst == s.Burst && !o.Dead && !o.Reflected)
                     {
@@ -384,7 +406,8 @@ namespace BreachPoint
                         Kill(o);
                     }
             }
-            Popup.Show(s.Pos + Vector3.up * 1.5f, flood ? "FLOOD FILTERED!" : "BLOCKED!", Palette.Good);
+            string blockText = s.Type == AttackType.DDoS ? "FLOOD FILTERED!" : s.Type == AttackType.Password ? "MFA BLOCKED IT!" : "BLOCKED!";
+            Popup.Show(s.Pos + Vector3.up * 1.5f, blockText, Palette.Good);
             Sfx.Play("block", 0.9f);
             Haptics.Pulse(_s.Players[DefenderIndex].Controls, 0.2f, 0.5f, 0.12f);
         }
@@ -466,7 +489,7 @@ namespace BreachPoint
             _aiFireTimer -= dt;
             if (_aiFireTimer <= 0f && Mathf.Abs(p.z - Lanes[_aiLane]) < 1.2f)
             {
-                c.CpuAction = Random.Range(0, 3);
+                c.CpuAction = Random.Range(0, Attacks.Count);
                 _aiFireTimer = Random.Range(0.8f, 1.5f);
             }
         }
@@ -491,7 +514,7 @@ namespace BreachPoint
                 {
                     _aiThreat = threat;
                     _aiReactAt = Time.time + Random.Range(0.3f, 0.55f);
-                    _aiPlannedShield = Random.value < 0.82f ? threat.Type : (AttackType)((int)(threat.Type + Random.Range(1, 3)) % 3);
+                    _aiPlannedShield = Random.value < 0.82f ? threat.Type : (AttackType)(((int)threat.Type + Random.Range(1, Attacks.Count)) % Attacks.Count);
                 }
                 if (_aiReactAt > 0 && Time.time >= _aiReactAt)
                 {
@@ -508,9 +531,9 @@ namespace BreachPoint
         string Legend()
         {
             var sb = new System.Text.StringBuilder();
-            string[] pads = { "A / ✕", "B / ○", "X / □" };
             foreach (var t in Attacks.All)
-                sb.AppendLine(Palette.Paint($"{pads[(int)t]}     {Attacks.Name(t)}   →   {Attacks.Defense(t)}", Attacks.Color(t)));
+                sb.AppendLine(Palette.Paint($"{Attacks.PadLabels[(int)t]}    {Attacks.Name(t)}  →  {Attacks.Defense(t)}", Attacks.Color(t)) +
+                              Palette.Paint($"   ({Attacks.Behaviour(t)})", Palette.Muted));
             return sb.ToString();
         }
 
@@ -520,8 +543,9 @@ namespace BreachPoint
             Title = "FIREWALL ARENA",
             Accent = Palette.Gold,
             Body =
-                "<b>ATTACKER</b> fires cyber-attacks at the three servers.\n" +
-                "<b>DEFENDER</b> drives in front of them and switches the shield to the <b>matching defense</b>.\n\n" +
+                "Protect OmanLNG's systems inside the SOC fort.\n" +
+                "<b>ATTACKER</b> fires cyber-attacks at the three systems.  " +
+                "<b>DEFENDER</b> blocks them with the <b>matching defense</b>.\n\n" +
                 Legend() + "\n" +
                 "Right defense = blocked and bounced back.   Wrong defense = data stolen.\n" +
                 Palette.Paint("Left stick: move  ·  RT / R1: boost  ·  Roles swap at half-time", Palette.Muted) + "\n\n" +
@@ -546,14 +570,15 @@ namespace BreachPoint
             var r = new MiniGameResult { Game = Title, ScoreLabel = "data stolen %" };
             r.Scores[0] = StolenAsAttacker[0];
             r.Scores[1] = StolenAsAttacker[1];
+            for (int i = 0; i < 2; i++) r.Points[i] = Mathf.RoundToInt(StolenAsAttacker[i]) + BlockPoints * Blocks[i];
             if (Mathf.Abs(r.Scores[0] - r.Scores[1]) > 0.01f) r.Winner = r.Scores[0] > r.Scores[1] ? 0 : 1;
             else if (Blocks[0] != Blocks[1]) r.Winner = Blocks[0] > Blocks[1] ? 0 : 1;
 
             // Lesson: the attack type that got through most often (or the most-used one).
             int worst = 0;
-            for (int i = 1; i < 3; i++) if (HitsByType[i] > HitsByType[worst]) worst = i;
+            for (int i = 1; i < Attacks.Count; i++) if (HitsByType[i] > HitsByType[worst]) worst = i;
             if (HitsByType[worst] == 0)
-                for (int i = 1; i < 3; i++) if (FiredByType[i] > FiredByType[worst]) worst = i;
+                for (int i = 1; i < Attacks.Count; i++) if (FiredByType[i] > FiredByType[worst]) worst = i;
             var t = (AttackType)worst;
             string lead = HitsByType[worst] > 0 ? $"{Attacks.Name(t)} got through {HitsByType[worst]} times. " : "";
             r.Lesson = lead + Attacks.Lesson(t);
@@ -564,7 +589,8 @@ namespace BreachPoint
         {
             var r = Result;
             string Row(int i) =>
-                $"{_s.Players[i].Tag}   stole <b>{StolenAsAttacker[i]:0}%</b>   ·   blocked {Blocks[i]}   ·   wrong defenses {WrongDefenses[i]}";
+                $"{_s.Players[i].Tag}   stole <b>{StolenAsAttacker[i]:0}%</b>  ·  blocked {Blocks[i]}  ·  wrong {WrongDefenses[i]}   " +
+                Palette.Paint($"= {r.Points[i]} pts", Palette.Gold);
             return new Card
             {
                 Kicker = "FIREWALL ARENA · RESULT",

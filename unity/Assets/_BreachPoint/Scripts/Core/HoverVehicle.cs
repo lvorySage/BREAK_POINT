@@ -120,9 +120,67 @@ namespace BreachPoint
         }
     }
 
+    /// <summary>Gas-flare flicker: scales the flame and its light with noise.</summary>
+    public sealed class Flicker : MonoBehaviour
+    {
+        public Light Light;
+        Vector3 _base;
+        float _seed;
+
+        void Start()
+        {
+            _base = transform.localScale;
+            _seed = Random.value * 100f;
+        }
+
+        void Update()
+        {
+            float n = Mathf.PerlinNoise(_seed, Time.time * 3f);
+            transform.localScale = new Vector3(_base.x * (0.85f + 0.3f * n), _base.y * (0.75f + 0.5f * n), _base.z * (0.85f + 0.3f * n));
+            if (Light != null) Light.intensity = 6f + 6f * n;
+        }
+    }
+
     /// <summary>Procedural cyberpunk skyline with neon windows and awareness billboards.</summary>
     public static class City
     {
+        /// <summary>LNG storage tanks, process columns and a gas flare on the horizon (OmanLNG theme).</summary>
+        public static void LngPlant(Transform parent, Vector3 origin)
+        {
+            var root = new GameObject("LNG Plant").transform;
+            root.SetParent(parent, false);
+            root.localPosition = origin;
+            var white = Mats.Lit(new Color(0.78f, 0.8f, 0.84f), 0.45f, 0.2f);
+            var steel = Mats.Lit(new Color(0.35f, 0.37f, 0.42f), 0.6f, 0.7f);
+            var red = Mats.Glow(Palette.Red, 3f);
+
+            for (int i = 0; i < 4; i++)
+            {
+                var p = new Vector3(-48f + i * 24f, 0, (i % 2) * 10f);
+                Shapes.Prim(PrimitiveType.Cylinder, root, "LNG Tank", p + new Vector3(0, 9f, 0), new Vector3(17f, 9f, 17f), white, false);
+                Shapes.Ball(root, "Dome", p + new Vector3(0, 18f, 0), 1f, white).transform.localScale = new Vector3(17f, 5f, 17f);
+                Shapes.Ball(root, "AirLight", p + new Vector3(0, 20.6f, 0), 0.6f, red);
+                Shapes.Box(root, "Band", p + new Vector3(0, 12f, 0), new Vector3(17.2f, 0.5f, 0.3f), Mats.Glow(new Color(0.3f, 0.8f, 1f), 1.2f), false);
+            }
+            for (int i = 0; i < 6; i++)
+            {
+                var p = new Vector3(-30f + i * 9f, 0, -16f);
+                float h = 14f + (i % 3) * 6f;
+                Shapes.Prim(PrimitiveType.Cylinder, root, "Column", p + new Vector3(0, h / 2f, 0), new Vector3(2.2f, h / 2f, 2.2f), steel, false);
+                Shapes.Ball(root, "ColumnLight", p + new Vector3(0, h + 0.4f, 0), 0.5f, Mats.Glow(new Color(1f, 0.75f, 0.3f), 3f));
+            }
+            Shapes.Box(root, "PipeRack", new Vector3(0, 6f, -22f), new Vector3(110f, 0.8f, 1.2f), steel, false);
+            Shapes.Box(root, "PipeRack", new Vector3(0, 8f, -24f), new Vector3(110f, 0.6f, 0.9f), steel, false);
+
+            // Flare stack with a living flame.
+            var flareBase = new Vector3(62f, 0, 4f);
+            Shapes.Prim(PrimitiveType.Cylinder, root, "FlareStack", flareBase + new Vector3(0, 20f, 0), new Vector3(1.4f, 20f, 1.4f), steel, false);
+            var flame = Shapes.Ball(root, "Flame", flareBase + new Vector3(0, 42.5f, 0), 1f, Mats.Glow(new Color(1f, 0.55f, 0.15f), 4f));
+            flame.transform.localScale = new Vector3(3.2f, 5.5f, 3.2f);
+            var fl = flame.AddComponent<Flicker>();
+            fl.Light = Shapes.PointLight(root, flareBase + new Vector3(0, 42f, 0), new Color(1f, 0.6f, 0.25f), 60f, 8f);
+        }
+
         static readonly string[] Signs =
         {
             "THINK BEFORE YOU CLICK", "PATCH • UPDATE • REPEAT", "MFA = ON", "REPORT PHISHING",
@@ -156,6 +214,8 @@ namespace BreachPoint
                 if (Mathf.Abs(pos.x) < innerHalfSize.x + 8 && Mathf.Abs(pos.z) < innerHalfSize.y + 8) continue;
                 // keep the camera's view (south side, close) clear
                 if (pos.z < -20f && Mathf.Abs(pos.x) < 40f && dist < 60f) continue;
+                // keep the LNG plant area (north) clear
+                if (pos.z > 45f && Mathf.Abs(pos.x) < 80f) continue;
                 float w = 6f + R() * 10f, d = 6f + R() * 10f, h = 12f + R() * 55f;
                 var b = Shapes.Box(root, "Tower", pos + new Vector3(0, h / 2f - 30f, 0), new Vector3(w, h, d), R() > 0.4f ? dark : darker, false).transform;
 

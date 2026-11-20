@@ -50,6 +50,7 @@ namespace BreachPoint
         public int Winner = -1;          // player index, -1 = draw
         public float[] Scores = new float[2];
         public string ScoreLabel;        // e.g. "DATA STOLEN"
+        public int[] Points = new int[2]; // leaderboard points earned in this mini-game
         public string Lesson;
     }
 
@@ -68,7 +69,22 @@ namespace BreachPoint
             if (r.Winner >= 0) Wins[r.Winner]++;
         }
 
-        public int Champion => Wins[0] == Wins[1] ? -1 : Wins[0] > Wins[1] ? 0 : 1;
+        public int Champion
+        {
+            get
+            {
+                if (Wins[0] != Wins[1]) return Wins[0] > Wins[1] ? 0 : 1;
+                int p0 = TotalPoints(0), p1 = TotalPoints(1);
+                return p0 == p1 ? -1 : p0 > p1 ? 0 : 1;
+            }
+        }
+
+        public int TotalPoints(int player)
+        {
+            int sum = 0;
+            foreach (var r in Results) sum += r.Points[player];
+            return sum;
+        }
     }
 
     public static class Fonts

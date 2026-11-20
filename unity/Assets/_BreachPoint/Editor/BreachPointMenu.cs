@@ -28,6 +28,16 @@ namespace BreachPoint.EditorTools
             EditorApplication.isPlaying = false;
         }
 
+        [MenuItem("Breach Point/Reset Leaderboard", priority = 60)]
+        static void ResetLeaderboard()
+        {
+            if (EditorUtility.DisplayDialog("Reset leaderboard", "Delete all saved scores on this computer?", "Delete scores", "Cancel"))
+            {
+                Leaderboard.Reset();
+                Debug.Log("[BreachPoint] Leaderboard cleared.");
+            }
+        }
+
         /// <summary>Opens (creating on first use) a scene that only runs the controller check, then plays it.</summary>
         [MenuItem("Breach Point/Controller Check Scene", priority = 20)]
         static void OpenControllerCheck() => RunInEditMode(() =>

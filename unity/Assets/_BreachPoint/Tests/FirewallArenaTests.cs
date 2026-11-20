@@ -76,6 +76,41 @@ namespace BreachPoint.Tests
         }
 
         [Test]
+        public void PasswordChain_IsStoppedEntirelyByMfa()
+        {
+            _g.SetShield(AttackType.Password);
+            Assert.IsTrue(_g.TryFire(AttackType.Password));
+            Sim(4f);
+            Assert.AreEqual(0f, _g.StolenThisHalf, 0.01f, "MFA blocks every login attempt in the chain");
+            Assert.AreEqual(1, _g.Blocks[1], "one block per chain");
+        }
+
+        [Test]
+        public void PasswordChain_GetsThroughWithoutMfa()
+        {
+            _g.SetShield(AttackType.Malware);
+            _g.TryFire(AttackType.Password);
+            Sim(4f);
+            Assert.AreEqual(3 * Attacks.Value(AttackType.Password), _g.StolenThisHalf, 0.01f);
+            Assert.AreEqual(1, _g.WrongDefenses[1], "one wrong defense per chain");
+        }
+
+        [Test]
+        public void Result_AwardsLeaderboardPoints()
+        {
+            _g.SetShield(AttackType.Phishing);
+            _g.TryFire(AttackType.Malware);   // 8% stolen by Red
+            Sim(2f);
+            _g.StartHalf(1);
+            _g.SetShield(AttackType.Malware); // Red defends and blocks once
+            _g.TryFire(AttackType.Malware);
+            Sim(2f);
+            var r = _g.ComputeResult();
+            Assert.AreEqual(8 + FirewallArena.BlockPoints, r.Points[0]);
+            Assert.AreEqual(0, r.Points[1]);
+        }
+
+        [Test]
         public void Cooldowns_PreventSpam()
         {
             Assert.IsTrue(_g.TryFire(AttackType.Phishing));

@@ -31,6 +31,9 @@ namespace BreachPoint.Tests
             _p2 = InputSystem.AddDevice<Gamepad>("TestPad2");
             GameFlow.HalfSecondsOverride = 4f;
             GameFlow.IdleResetSeconds = 9999f;
+            Leaderboard.PathOverride = Path.Combine(Application.temporaryCachePath, "bp_test_leaderboard.json");
+            Leaderboard.Reset();
+            Sfx.Muted = false;
         }
 
         [TearDown]
@@ -47,7 +50,9 @@ namespace BreachPoint.Tests
             InputSystem.settings.editorInputBehaviorInPlayMode = _editorInput;
             GameFlow.HalfSecondsOverride = -1f;
             GameFlow.IdleResetSeconds = 120f;
+            Leaderboard.PathOverride = null;
             Time.timeScale = 1f;
+            AudioListener.volume = 1f;
         }
 
         static IEnumerator Press(Gamepad pad, GamepadButton button)
@@ -133,7 +138,23 @@ namespace BreachPoint.Tests
             yield return new WaitForSeconds(0.9f);
             Screenshot.Capture("09-final");
             yield return Press(_p1, GamepadButton.South);
-            yield return WaitFor(() => _flow.State == "title", 5, "back to title");
+
+            // Initials for whoever scored: change the first letter, then confirm three times.
+            yield return WaitFor(() => _flow.State == "initials" || _flow.State == "title", 5, "initials");
+            if (_flow.State == "initials")
+            {
+                yield return new WaitForSecondsRealtime(0.4f);
+                Screenshot.Capture("10-initials");
+                for (int i = 0; i < 3; i++)
+                {
+                    yield return Press(_p1, GamepadButton.South);
+                    yield return Press(_p2, GamepadButton.South);
+                }
+            }
+            yield return WaitFor(() => _flow.State == "title", 6, "back to title");
+            yield return new WaitForSeconds(0.5f);
+            Screenshot.Capture("11-title-leaderboard");
+            Assert.Greater(Leaderboard.Load().Count, 0, "score saved to the leaderboard");
         }
 
         [UnityTest]
@@ -152,11 +173,35 @@ namespace BreachPoint.Tests
             var arena = UnityEngine.Object.FindAnyObjectByType<FirewallArena>();
             yield return WaitFor(() => arena != null && arena.Playing, 6, "play");
 
-            yield return Press(_p1, GamepadButton.Start);
+            // Global pause works from any controller, even one that isn't playing.
+            yield return Press(_p2, GamepadButton.Start);
             Assert.IsTrue(_flow.Paused);
             Assert.AreEqual(0f, Time.timeScale);
-            Screenshot.Capture("10-paused");
-            yield return Press(_p1, GamepadButton.East);   // quit
+            Screenshot.Capture("12-paused");
+
+            // B resumes; the press must not leak into the game.
+            yield return Press(_p1, GamepadButton.East);
+            Assert.IsFalse(_flow.Paused);
+            Assert.AreEqual(1f, Time.timeScale);
+
+            // Restart this game: arena rebuilt, same players.
+            yield return Press(_p1, GamepadButton.Start);
+            yield return Press(_p1, GamepadButton.DpadDown);
+            Assert.AreEqual(1, _flow.PauseSelection);
+            yield return Press(_p1, GamepadButton.South);
+            yield return WaitFor(() => _flow.ScreenName == "Card", 5, "intro after restart");
+            Assert.IsTrue(arena == null, "old arena destroyed");
+            Assert.IsTrue(_flow.Session.Players[1].Controls.IsCpu, "same players");
+            yield return new WaitForSeconds(0.9f);
+            yield return Press(_p1, GamepadButton.South);
+            arena = UnityEngine.Object.FindAnyObjectByType<FirewallArena>();
+            yield return WaitFor(() => arena != null && arena.Playing, 6, "play after restart");
+
+            // Quit to title: 4th item (wraps from the top going up).
+            yield return Press(_p1, GamepadButton.Start);
+            yield return Press(_p1, GamepadButton.DpadUp);
+            Assert.AreEqual(3, _flow.PauseSelection);
+            yield return Press(_p1, GamepadButton.South);
             yield return WaitFor(() => _flow.State == "title", 5, "title after quit");
             Assert.IsFalse(_flow.Paused);
             Assert.AreEqual(1f, Time.timeScale);
