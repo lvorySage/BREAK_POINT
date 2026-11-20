@@ -16,7 +16,7 @@ namespace BreachPoint.EditorTools
         public const string MainScene = "Assets/_BreachPoint/Scenes/Main.unity";
         const string MatDir = "Assets/_BreachPoint/Resources/Materials";
 
-        [MenuItem("Breach Point/Setup Project (materials + Main scene)")]
+        [MenuItem("Breach Point/Setup Project (materials + Main scene)", priority = 40)]
         public static void Run()
         {
             Directory.CreateDirectory(MatDir);
@@ -48,13 +48,41 @@ namespace BreachPoint.EditorTools
             AssetDatabase.CreateAsset(new Material(sh) { name = name }, path);
         }
 
-        [MenuItem("Breach Point/Play Game (Main scene)")]
-        static void PlayMain()
+        [MenuItem("Breach Point/▶ Play Game", priority = 0)]
+        static void PlayMain() => BreachPointMenu.RunInEditMode(() =>
         {
             if (!File.Exists(MainScene)) Run();
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
             EditorSceneManager.OpenScene(MainScene);
             EditorApplication.isPlaying = true;
+        });
+    }
+}
+
+namespace BreachPoint.EditorTools
+{
+    /// <summary>The editor's ▶ Play button always starts the game from Main.unity, whatever scene is open.</summary>
+    [InitializeOnLoad]
+    public static class PlayStartsGame
+    {
+        static PlayStartsGame() => EditorApplication.delayCall += Apply;
+
+        public static void Apply()
+        {
+            EditorSceneManager.playModeStartScene = AssetDatabase.LoadAssetAtPath<SceneAsset>(ProjectSetup.MainScene);
+        }
+
+        /// <summary>Play a different scene once (e.g. Controller Check), then restore.</summary>
+        public static void PlayOtherSceneOnce()
+        {
+            EditorSceneManager.playModeStartScene = null;
+            void OnChange(PlayModeStateChange s)
+            {
+                if (s != PlayModeStateChange.EnteredEditMode) return;
+                EditorApplication.playModeStateChanged -= OnChange;
+                Apply();
+            }
+            EditorApplication.playModeStateChanged += OnChange;
         }
     }
 }

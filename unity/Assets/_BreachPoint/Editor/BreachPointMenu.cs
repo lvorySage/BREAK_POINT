@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -7,29 +8,51 @@ namespace BreachPoint.EditorTools
 {
     public static class BreachPointMenu
     {
-        const string ScenePath = "Assets/_BreachPoint/Scenes/ControllerCheck.unity";
+        const string ControllerScene = "Assets/_BreachPoint/Scenes/ControllerCheck.unity";
 
-        /// <summary>Opens (creating on first use) a scene that only runs the controller check.</summary>
-        [MenuItem("Breach Point/Controller Check Scene")]
-        static void OpenControllerCheck()
+        /// <summary>Menu actions can't open scenes during play mode: stop first, then continue.</summary>
+        public static void RunInEditMode(Action action)
         {
-            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
-            if (File.Exists(ScenePath))
+            if (!EditorApplication.isPlaying)
             {
-                EditorSceneManager.OpenScene(ScenePath);
+                action();
                 return;
             }
-            Directory.CreateDirectory(Path.GetDirectoryName(ScenePath));
-            var scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
-            var cam = Camera.main;
-            if (cam != null)
+            void OnChange(PlayModeStateChange s)
             {
-                cam.clearFlags = CameraClearFlags.SolidColor;
-                cam.backgroundColor = new Color(0.024f, 0.04f, 0.075f);
+                if (s != PlayModeStateChange.EnteredEditMode) return;
+                EditorApplication.playModeStateChanged -= OnChange;
+                EditorApplication.delayCall += () => action();
             }
-            new GameObject("ControllerCheck").AddComponent<ControllerCheck>();
-            EditorSceneManager.SaveScene(scene, ScenePath);
-            AssetDatabase.Refresh();
+            EditorApplication.playModeStateChanged += OnChange;
+            EditorApplication.isPlaying = false;
         }
+
+        /// <summary>Opens (creating on first use) a scene that only runs the controller check, then plays it.</summary>
+        [MenuItem("Breach Point/Controller Check Scene", priority = 20)]
+        static void OpenControllerCheck() => RunInEditMode(() =>
+        {
+            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+            if (File.Exists(ControllerScene))
+            {
+                EditorSceneManager.OpenScene(ControllerScene);
+            }
+            else
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(ControllerScene));
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
+                var cam = Camera.main;
+                if (cam != null)
+                {
+                    cam.clearFlags = CameraClearFlags.SolidColor;
+                    cam.backgroundColor = new Color(0.024f, 0.04f, 0.075f);
+                }
+                new GameObject("ControllerCheck").AddComponent<ControllerCheck>();
+                EditorSceneManager.SaveScene(scene, ControllerScene);
+                AssetDatabase.Refresh();
+            }
+            PlayStartsGame.PlayOtherSceneOnce();
+            EditorApplication.isPlaying = true;
+        });
     }
 }
