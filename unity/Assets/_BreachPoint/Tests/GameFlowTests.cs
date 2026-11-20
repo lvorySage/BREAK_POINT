@@ -133,8 +133,33 @@ namespace BreachPoint.Tests
             yield return Press(_p1, GamepadButton.South);
             yield return Press(_p2, GamepadButton.South);
 
+            // ---- Mini-game 2: Data Heist Ball ----
+            yield return WaitFor(() => _flow.State == "game:DATA HEIST BALL" && _flow.ScreenName == "Card", 6, "data heist intro");
+            yield return new WaitForSeconds(0.9f);
+            Screenshot.Capture("08b-heist-intro");
+            yield return Press(_p1, GamepadButton.South);
+            yield return Press(_p2, GamepadButton.South);
+            var heist = UnityEngine.Object.FindAnyObjectByType<DataHeistBall>();
+            Assert.IsNotNull(heist);
+            yield return WaitFor(() => heist.Playing, 6, "heist half 1");
+            Stick(_p1, new Vector2(-1f, 0f));       // Red (attacker) drives at the data
+            yield return new WaitForSeconds(0.8f);
+            yield return Press(_p1, GamepadButton.South);
+            yield return Press(_p2, GamepadButton.North); // Blue tries DLP lock
+            yield return new WaitForSeconds(0.3f);
+            Screenshot.Capture("08c-heist-play");
+            Stick(_p1, Vector2.zero);
+            yield return WaitFor(() => _flow.ScreenName == "Card", 10, "heist half-time");
+            yield return WaitFor(() => heist.Playing && heist.Half == 1, 12, "heist half 2");
+            Assert.AreEqual(1, heist.AttackerIndex);
+            yield return WaitFor(() => _flow.ScreenName == "Card" && !heist.Playing && heist.Half == 1, 10, "heist result");
+            yield return new WaitForSeconds(0.9f);
+            Screenshot.Capture("08d-heist-result");
+            yield return Press(_p1, GamepadButton.South);
+            yield return Press(_p2, GamepadButton.South);
+
             yield return WaitFor(() => _flow.State == "final", 5, "final");
-            Assert.AreEqual(1, _flow.Session.Results.Count);
+            Assert.AreEqual(2, _flow.Session.Results.Count, "both mini-games recorded");
             yield return new WaitForSeconds(0.9f);
             Screenshot.Capture("09-final");
             yield return Press(_p1, GamepadButton.South);

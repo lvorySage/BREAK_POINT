@@ -539,7 +539,7 @@ namespace BreachPoint
 
         Card IntroCard() => new Card
         {
-            Kicker = $"MINI-GAME 1 OF {1 + GameFlow.ComingSoon.Length}",
+            Kicker = $"MINI-GAME 1 OF {GameFlow.TotalGames}",
             Title = "FIREWALL ARENA",
             Accent = Palette.Gold,
             Body =

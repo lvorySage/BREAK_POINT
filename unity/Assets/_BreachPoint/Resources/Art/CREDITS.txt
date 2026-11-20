@@ -3,3 +3,5 @@ Poly Haven (polyhaven.com): beige_wall_001 -> FortPlaster, sandstone_blocks_08 -
   concrete_floor_worn_001 -> RoofConcrete, metal_plate -> MetalPlate, rooftop_night (HDRI) -> RooftopNight.
 Quaternius Ultimate Spaceships (quaternius.com, CC0): Spitfire -> Models/HoverVehicle.fbx,
   Spitfire_Red/Blue textures -> Models/HoverVehicle_Red.png / HoverVehicle_Blue.png
+Quaternius Cyberpunk Game Kit (quaternius.com, CC0): Turret_Teleporter -> ExfilPortal, Computer_Large -> VaultTerminal,
+  Collectible_Board -> DataChip, AC -> RoofAC, Antenna_1 -> RoofAntenna

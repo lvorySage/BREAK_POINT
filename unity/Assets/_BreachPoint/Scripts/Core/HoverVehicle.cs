@@ -101,6 +101,20 @@ namespace BreachPoint
             Velocity = Vector3.zero;
         }
 
+        /// <summary>Moves without touching velocity (collision separation).</summary>
+        public void Nudge(Vector3 delta)
+        {
+            delta.y = 0;
+            transform.position += delta;
+        }
+
+        /// <summary>Adds an impulse (being bumped by another ship).</summary>
+        public void Bump(Vector3 impulse)
+        {
+            impulse.y = 0;
+            Velocity += impulse;
+        }
+
         /// <summary>Moves inside an XZ rectangle. Call once per simulation step.</summary>
         public void Drive(Vector2 input, bool boost, float dt, Rect zone, float speedScale = 1f)
         {

@@ -50,9 +50,16 @@ Clear it before the event with **Breach Point → Reset Leaderboard**.
 
 Art is placeholder (code-built neon shapes); the art pass swaps in models without changing the rules.
 
+### Data Heist Ball (mini-game 2)
+
+The attacker pushes the glowing DATA packet into the **EXFIL** portal (left); the defender returns it to the **OmanLNG DATA VAULT** (right).
+Both: drive into the data to push it, **A / ✕** kick, **RT / R1** boost.
+Defender tools: **X / □ ENCRYPT** (near the data: anything stolen in the next 5 s is useless) and **Y / △ DLP LOCK** (seals the exit for 3 s).
+Each exfil steals 20%. Roles swap at half-time; the winner stole more data. Points: data stolen + 10 per recovery + 5 per save.
+
 ## Automated tests
 
-**Window → General → Test Runner → PlayMode → Run All** (11 tests: the rules, plus a full two-gamepad playthrough).
+**Window → General → Test Runner → PlayMode → Run All** (28 tests: the rules of each mini-game, leaderboard, pause menu, and a full two-gamepad playthrough of the gauntlet).
 From a terminal, with the editor closed:
 
 ```bash

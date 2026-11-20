@@ -42,8 +42,10 @@ namespace BreachPoint
         public static readonly List<Func<IMiniGame>> Games = new List<Func<IMiniGame>>
         {
             () => FirewallArena.Create(),
+            () => DataHeistBall.Create(),
         };
-        public static readonly string[] ComingSoon = { "DATA HEIST BALL", "PHISH RACE" };
+        public static readonly string[] ComingSoon = { "PHISH RACE" };
+        public static int TotalGames => Games.Count + ComingSoon.Length;
 
         public static GameFlow Instance { get; private set; }
         public Session Session { get; private set; }
