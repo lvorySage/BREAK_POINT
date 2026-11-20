@@ -53,7 +53,8 @@ namespace BreachPoint
         public static void Fit(GameObject go, Vector3 size, Vector3 center, bool zForward = true)
         {
             var t = go.transform;
-            if (zForward) t.localRotation = Quaternion.Euler(0, 90f, 0);
+            // Compose with the model's own import rotation (Blender FBX roots are often rotated -90° on X).
+            if (zForward) t.localRotation = Quaternion.Euler(0, 90f, 0) * t.localRotation;
             var rs = go.GetComponentsInChildren<Renderer>();
             if (rs.Length == 0) return;
             Bounds Measure()
@@ -69,6 +70,23 @@ namespace BreachPoint
             var b2 = Measure();
             var localCenter = t.parent != null ? t.parent.InverseTransformPoint(b2.center) : b2.center;
             t.localPosition += center - localCenter;
+        }
+
+        /// <summary>Puts one texture on every material of a model (e.g. a team livery), base colour white.</summary>
+        public static void ApplyTexture(GameObject go, Texture2D tex)
+        {
+            foreach (var r in go.GetComponentsInChildren<Renderer>())
+            {
+                var mats = r.materials;
+                foreach (var m in mats)
+                {
+                    if (m.HasProperty("_BaseMap")) m.SetTexture("_BaseMap", tex);
+                    if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", Color.white);
+                    if (m.HasProperty("_Smoothness")) m.SetFloat("_Smoothness", 0.55f);
+                    if (m.HasProperty("_Metallic")) m.SetFloat("_Metallic", 0.35f);
+                }
+                r.materials = mats;
+            }
         }
 
         /// <summary>

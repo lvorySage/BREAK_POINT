@@ -24,6 +24,7 @@ namespace BreachPoint
         Vector3 _face = Vector3.right;
 
         public Transform Body => _body;
+        public bool HasModel { get; private set; }
         public Transform Mount { get; private set; }
 
         public static HoverVehicle Create(Transform parent, Team team, string name)
@@ -72,14 +73,19 @@ namespace BreachPoint
             var model = ArtKit.Model("HoverVehicle", _body);
             if (model != null)
             {
-                // Kenney speeders are modelled lengthwise along X already.
-                ArtKit.Fit(model, new Vector3(2.6f, 1.0f, 1.8f), new Vector3(0, 0.1f, 0), zForward: false);
-                ArtKit.TeamPaint(model, c);
-                foreach (var n in new[] { "Hull", "Paint", "Cockpit", "Nose", "StripL", "StripR" })
+                // Quaternius ships are modelled nose-forward along +Z.
+                ArtKit.Fit(model, new Vector3(3.0f, 1.1f, 2.8f), new Vector3(0, 0.1f, 0), zForward: true);
+                // Prefer the real team livery texture; otherwise repaint the accent colour.
+                var livery = Resources.Load<Texture2D>("Art/Models/HoverVehicle_" + (_team == Team.Red ? "Red" : "Blue"));
+                if (livery != null) ArtKit.ApplyTexture(model, livery);
+                else ArtKit.TeamPaint(model, c);
+                foreach (Transform t in _body)
                 {
-                    var t = _body.Find(n);
-                    if (t != null) t.gameObject.SetActive(false);
+                    if (t.name is "Hull" or "Paint" or "Cockpit" or "Nose" or "StripL" or "StripR" or "Pad") t.gameObject.SetActive(false);
                 }
+                HasModel = true;
+                // Soft key light so the livery reads under the night lighting.
+                Shapes.PointLight(_body, new Vector3(0.4f, 2.2f, -0.6f), new Color(1f, 0.95f, 0.9f), 5f, 2.2f);
             }
         }
 

@@ -26,6 +26,11 @@ These sites only allow downloads from a browser, so this part is manual (~10 min
 
 Packs 1–3 matter most. 4–5 are needed for days 3–4.
 
+## Downloaded so far
+
+In `~/Downloads/BreachPointAssets/`: Quaternius Ultimate Spaceships (11 ships × 5 colours) and Cyberpunk Game Kit; Kenney Space Kit, Racing Kit, Sports Pack, City Kit (Commercial), Input Prompts.
+Not downloaded: Quaternius Sci-Fi Essentials Kit (server racks stay as textured metal boxes).
+
 ## Already in the project (downloaded automatically)
 
 Poly Haven (CC0), in `Assets/_BreachPoint/Resources/Art/`:
@@ -39,7 +44,7 @@ If a slot is empty, the game keeps its placeholder shapes, so art can be added o
 
 | Slot | Replaces | Fitted to |
 |---|---|---|
-| `HoverVehicle` | Player hull, repainted in team colour (installed: Kenney Space Kit `craft_speederB`) | 2.6 × 1.0 × 1.8 m, modelled along X |
+| `HoverVehicle` | Player ship (installed: Quaternius **Spitfire**). Team liveries: `HoverVehicle_Red.png` / `HoverVehicle_Blue.png`; without them the accent colour is repainted | 3.0 × 1.1 × 2.8 m, nose along +Z |
 | `ServerRack` | The three server racks in the fort | 2 × 3.6 × 2.4 m |
 
 More slots (ball, goals, track pieces, props) are added as days 3–4 are built.

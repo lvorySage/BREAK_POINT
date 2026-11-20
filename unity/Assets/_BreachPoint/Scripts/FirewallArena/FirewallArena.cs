@@ -276,7 +276,7 @@ namespace BreachPoint
             dir.y = 0;
             dir.Normalize();
             var defender = _s.Players[DefenderIndex].Controls;
-            string hint = $"{Attacks.Name(t)}\n<size=44>{defender.ButtonName((int)t)} {Attacks.Defense(t)}</size>";
+            string hint = Attacks.Name(t); // the matching defense is shown in the HUD alert and legend
 
             if (t == AttackType.DDoS)
             {

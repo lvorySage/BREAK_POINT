@@ -217,9 +217,12 @@ namespace BreachPoint
 
                 rv.Cannon = new GameObject("Cannon");
                 rv.Cannon.transform.SetParent(v.Mount, false);
-                Shapes.Box(rv.Cannon.transform, "Turret", new Vector3(-0.1f, 0.05f, 0), new Vector3(0.7f, 0.3f, 0.7f), Mats.Lit(new Color(0.1f, 0.1f, 0.12f), 0.8f, 0.7f));
-                Shapes.Box(rv.Cannon.transform, "Barrel", new Vector3(0.55f, 0.08f, 0), new Vector3(1.1f, 0.14f, 0.14f), Mats.Lit(new Color(0.15f, 0.15f, 0.18f), 0.8f, 0.8f));
-                Shapes.Box(rv.Cannon.transform, "Muzzle", new Vector3(1.12f, 0.08f, 0), new Vector3(0.08f, 0.2f, 0.2f), Mats.Glow(team, 5f), false);
+                if (!v.HasModel) // the ship model is already armed; the box turret is only for the placeholder hull
+                {
+                    Shapes.Box(rv.Cannon.transform, "Turret", new Vector3(-0.1f, 0.05f, 0), new Vector3(0.7f, 0.3f, 0.7f), Mats.Lit(new Color(0.1f, 0.1f, 0.12f), 0.8f, 0.7f));
+                    Shapes.Box(rv.Cannon.transform, "Barrel", new Vector3(0.55f, 0.08f, 0), new Vector3(1.1f, 0.14f, 0.14f), Mats.Lit(new Color(0.15f, 0.15f, 0.18f), 0.8f, 0.8f));
+                    Shapes.Box(rv.Cannon.transform, "Muzzle", new Vector3(1.12f, 0.08f, 0), new Vector3(0.08f, 0.2f, 0.2f), Mats.Glow(team, 5f), false);
+                }
 
                 rv.Shield = new GameObject("Shield");
                 rv.Shield.transform.SetParent(v.transform, false);

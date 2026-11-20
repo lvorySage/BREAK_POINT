@@ -1,4 +1,5 @@
 Third-party art in this folder (all CC0 / public domain, no attribution required):
 Poly Haven (polyhaven.com): beige_wall_001 -> FortPlaster, sandstone_blocks_08 -> FortStone,
   concrete_floor_worn_001 -> RoofConcrete, metal_plate -> MetalPlate, rooftop_night (HDRI) -> RooftopNight.
-Kenney Space Kit 2.0 (kenney.nl, CC0): craft_speederB -> Models/HoverVehicle.fbx
+Quaternius Ultimate Spaceships (quaternius.com, CC0): Spitfire -> Models/HoverVehicle.fbx,
+  Spitfire_Red/Blue textures -> Models/HoverVehicle_Red.png / HoverVehicle_Blue.png
