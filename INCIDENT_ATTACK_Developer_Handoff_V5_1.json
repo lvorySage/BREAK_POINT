@@ -1,0 +1,1153 @@
+{
+  "document_type": "developer_handoff",
+  "project": {
+    "name": "INCIDENT ATTACK",
+    "subtitle": "Red Team vs Blue Team — Cybersecurity Awareness Game",
+    "event": "Security Week, fictional LNG company context",
+    "current_poc": "V5.1",
+    "current_scope": "Phishing campaign only",
+    "purpose": "Interactive, accessible two-player security-awareness booth experience that teaches how attacker choices, SOC alert prioritization, and delayed response affect data exposure and business consequences.",
+    "audience": [
+      "nontechnical employees",
+      "IT employees",
+      "cybersecurity staff"
+    ],
+    "statuses": {
+      "implemented": "Present in latest V5.1 source files and offline demonstration.",
+      "requested_future": "Discussed, but not part of V5.1 or not yet fully specified.",
+      "superseded": "Earlier approach replaced by current design.",
+      "recommended": "Developer recommendation, not a user-approved requirement."
+    }
+  },
+  "core_experience": {
+    "implemented": true,
+    "teams": {
+      "red": {
+        "role": "Attacker",
+        "objective": "Build a convincing phishing campaign, gain access, distract the SOC, and extract target data.",
+        "turn_action": "Select 1 main attack and 1 distraction, then launch.",
+        "visual_theme": "Red/dark, masked hooded hacker character, sirens as attempts are stopped."
+      },
+      "blue": {
+        "role": "Defender / SOC analyst",
+        "objective": "Protect the simulated company by handling urgent real threats before misleading/noisy signals.",
+        "turn_action": "Tap 3 fixed-position SIEM alert cards to assign order 1, 2, 3. Submission triggers automatic containment/handling — NO extra response choices.",
+        "visual_theme": "Blue/dark, Omani SOC analyst in dishdasha and kumma, matrix-style code grows with data loss."
+      }
+    },
+    "devices": {
+      "actual_event": "Two laptop browsers connected to same local Node server",
+      "demo": "One browser showing Red and Blue simultaneously in split-screen; game state shared, not two unrelated demos",
+      "spectator": "Optional spectator role in multiplayer build"
+    },
+    "round_count": 4,
+    "minimum_rounds": 4,
+    "ends_early": false,
+    "turn_limit_seconds": 30,
+    "active_turns_per_match": 8,
+    "maximum_active_decision_time_seconds": 240,
+    "target_total_match_time_seconds": 360,
+    "remaining_time_usage": "Intro, transitions, cinematic final reveal, and player handover; not a server-enforced 6-minute hard stop.",
+    "flow": [
+      "Create/join game",
+      "Start game",
+      "Red chooses a main tactic and a distraction",
+      "Blue receives 3 generated simulated SIEM alerts immediately",
+      "Blue taps alert cards in urgency order",
+      "Game automatically resolves the whole queue and updates results/state",
+      "Next round starts, through all 4 rounds",
+      "Cinematic analysis/settlement reveal",
+      "Final grades, outcome, real-world case study, replay"
+    ],
+    "no_real_cyberattack_code": true,
+    "all_scenarios_fictional": true,
+    "simple_copy_target": "Most on-screen descriptions understood in approximately 2–3 seconds; avoid technical jargon unless explained in debrief."
+  },
+  "campaign_phases": {
+    "implemented": true,
+    "planning_stage": {
+      "name": "PLANNING STAGE",
+      "rounds": [
+        1,
+        2
+      ],
+      "display": "Visible progress/checklist; explain Red is building access and cannot steal data yet.",
+      "data_extraction_enabled": false,
+      "data_extraction_meter": "Hidden; replaced by access-building message.",
+      "rounds_detail": [
+        "Send phishing email / reach employee",
+        "Get account access / get past sign-in security"
+      ]
+    },
+    "attack_phase": {
+      "name": "ATTACK PHASE",
+      "rounds": [
+        3,
+        4
+      ],
+      "display": "Campaign progress changes to attack phase; visible confirmed data extraction stats.",
+      "data_extraction_enabled": true,
+      "rounds_detail": [
+        "Find and copy sensitive files / first possible loss",
+        "Move more files outside / final transfer attempt"
+      ]
+    },
+    "roadmap_ui": [
+      "Send phishing email",
+      "Get account access",
+      "Find and take files",
+      "Steal more data"
+    ],
+    "roadmap_states": [
+      "completed",
+      "current",
+      "locked"
+    ]
+  },
+  "rounds": [
+    {
+      "number": 1,
+      "engine_stage_id": "inbox",
+      "name": "INBOX INFILTRATION",
+      "subtitle": "Three suspicious alerts. One is the main phishing attack.",
+      "phase": "PLANNING STAGE",
+      "theme": "Fake messages arrive across the company.",
+      "red_main_prompt": "Choose your phishing email",
+      "red_main_hint": "The best-looking bait is not always the loudest one.",
+      "red_main_choices": [
+        {
+          "id": "password",
+          "icon": "🔑",
+          "title": "IT password reset",
+          "desc": "“Your password expires today.”",
+          "severity": "MEDIUM",
+          "priority": 5,
+          "correct": "stop",
+          "leak": 0,
+          "heat": 17,
+          "clue": "External reset link"
+        },
+        {
+          "id": "invoice",
+          "icon": "🧾",
+          "title": "Urgent supplier invoice",
+          "desc": "“Pay immediately to avoid a delay.”",
+          "severity": "HIGH",
+          "priority": 7,
+          "correct": "stop",
+          "leak": 0,
+          "heat": 24,
+          "clue": "Unknown supplier address"
+        },
+        {
+          "id": "shared",
+          "icon": "📄",
+          "title": "Shared contract link",
+          "desc": "“A contract is waiting for review.”",
+          "severity": "MEDIUM",
+          "priority": 6,
+          "correct": "stop",
+          "leak": 0,
+          "heat": 21,
+          "clue": "Unexpected file-sharing site"
+        }
+      ],
+      "red_secondary_prompt": "Add a distraction",
+      "red_secondary_hint": "A second alert can be real, misleading, or harmless.",
+      "red_distraction_choices": [
+        {
+          "id": "login_noise",
+          "icon": "🔐",
+          "title": "Login failure spike",
+          "desc": "Cause noisy failed sign-in alerts.",
+          "severity": "HIGH",
+          "priority": 3,
+          "correct": "verify",
+          "leak": 0,
+          "heat": 2,
+          "clue": "Failed attempts only; no successful login"
+        },
+        {
+          "id": "manager",
+          "icon": "👤",
+          "title": "Fake manager message",
+          "desc": "Send a second suspicious request.",
+          "severity": "MEDIUM",
+          "priority": 8,
+          "correct": "stop",
+          "leak": 0,
+          "heat": 12,
+          "clue": "Unexpected sender; requests external sign-in"
+        },
+        {
+          "id": "routine_mail",
+          "icon": "📣",
+          "title": "Noisy IT notice",
+          "desc": "Use a legitimate-looking IT announcement.",
+          "severity": "HIGH",
+          "priority": 1,
+          "correct": "leave",
+          "leak": 0,
+          "heat": 0,
+          "clue": "Verified sender; approved IT bulletin"
+        }
+      ],
+      "potential_ambient_events": [
+        {
+          "id": "meeting",
+          "icon": "📅",
+          "title": "Meeting invitation",
+          "desc": "Approved internal calendar meeting.",
+          "severity": "LOW",
+          "priority": 1,
+          "correct": "leave",
+          "leak": 0,
+          "heat": 0,
+          "clue": "Verified internal sender"
+        },
+        {
+          "id": "outside_reply",
+          "icon": "✉️",
+          "title": "Unknown outside reply",
+          "desc": "An unsolicited sender asks for a quick reply.",
+          "severity": "MEDIUM",
+          "priority": 4,
+          "correct": "verify",
+          "leak": 0,
+          "heat": 0,
+          "clue": "No link; sender not yet confirmed"
+        },
+        {
+          "id": "quarantine",
+          "icon": "📬",
+          "title": "Quarantine update",
+          "desc": "Gateway already blocked an attachment.",
+          "severity": "MEDIUM",
+          "priority": 2,
+          "correct": "leave",
+          "leak": 0,
+          "heat": 0,
+          "clue": "Mail system confirms block"
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "engine_stage_id": "signins",
+      "name": "ACCOUNT TAKEOVER",
+      "subtitle": "The attacker keeps pushing even if round one was stopped.",
+      "phase": "PLANNING STAGE",
+      "theme": "Employees report sign-in prompts and account changes.",
+      "red_main_prompt": "Choose your sign-in attack",
+      "red_main_hint": "Try to get into an employee account.",
+      "red_main_choices": [
+        {
+          "id": "stolen",
+          "icon": "🔓",
+          "title": "Stolen password",
+          "desc": "Try a password taken from a fake page.",
+          "severity": "HIGH",
+          "priority": 6,
+          "correct": "stop",
+          "leak": 0,
+          "heat": 22,
+          "clue": "Unrecognized device and location"
+        },
+        {
+          "id": "approval",
+          "icon": "📲",
+          "title": "Approval spam",
+          "desc": "Flood the employee with login prompts.",
+          "severity": "HIGH",
+          "priority": 7,
+          "correct": "stop",
+          "leak": 0,
+          "heat": 24,
+          "clue": "Repeated unwanted approvals"
+        },
+        {
+          "id": "session",
+          "icon": "🪪",
+          "title": "Stolen login session",
+          "desc": "Use an existing session to stay signed in.",
+          "severity": "MEDIUM",
+          "priority": 9,
+          "correct": "stop",
+          "leak": 0,
+          "heat": 29,
+          "clue": "Unfamiliar active session"
+        }
+      ],
+      "red_secondary_prompt": "Add a second signal",
+      "red_secondary_hint": "Make the defender split attention.",
+      "red_distraction_choices": [
+        {
+          "id": "travel",
+          "icon": "✈️",
+          "title": "Traveler login",
+          "desc": "Use a believable travel sign-in alert.",
+          "severity": "HIGH",
+          "priority": 3,
+          "correct": "verify",
+          "leak": 0,
+          "heat": 0,
+          "clue": "Travel note exists; verify with user"
+        },
+        {
+          "id": "otp",
+          "icon": "📱",
+          "title": "Unexpected code request",
+          "desc": "Pressure a second user for a one-time code.",
+          "severity": "CRITICAL",
+          "priority": 8,
+          "correct": "stop",
+          "leak": 0,
+          "heat": 13,
+          "clue": "User denies requesting the code"
+        },
+        {
+          "id": "service",
+          "icon": "⚙️",
+          "title": "Approved service change",
+          "desc": "Generate a scary-looking routine change.",
+          "severity": "HIGH",
+          "priority": 1,
+          "correct": "leave",
+          "leak": 0,
+          "heat": 0,
+          "clue": "Approved change reference"
+        }
+      ],
+      "potential_ambient_events": [
+        {
+          "id": "vpn",
+          "icon": "🌍",
+          "title": "VPN location change",
+          "desc": "Employee signs in from a different country.",
+          "severity": "HIGH",
+          "priority": 4,
+          "correct": "verify",
+          "leak": 0,
+          "heat": 0,
+          "clue": "No confirmed compromise; traveler listed"
+        },
+        {
+          "id": "denied",
+          "icon": "🚷",
+          "title": "Denied login attempt",
+          "desc": "Account denied an unfamiliar sign-in.",
+          "severity": "MEDIUM",
+          "priority": 2,
+          "correct": "verify",
+          "leak": 0,
+          "heat": 0,
+          "clue": "Attempt blocked; review surrounding events"
+        },
+        {
+          "id": "maintenance",
+          "icon": "🧰",
+          "title": "Maintenance sign-in",
+          "desc": "Approved overnight maintenance account.",
+          "severity": "MEDIUM",
+          "priority": 1,
+          "correct": "leave",
+          "leak": 0,
+          "heat": 0,
+          "clue": "Scheduled maintenance ticket"
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "engine_stage_id": "files",
+      "name": "FIRST DATA THEFT",
+      "subtitle": "The attacker attempts to copy sensitive business files.",
+      "phase": "ATTACK PHASE",
+      "theme": "The SOC sees unusual file and mailbox activity.",
+      "red_main_prompt": "Choose what to steal first",
+      "red_main_hint": "Copying more files brings more reward — and more alerts.",
+      "red_main_choices": [
+        {
+          "id": "mailbox",
+          "icon": "📨",
+          "title": "Employee mailbox",
+          "desc": "Copy emails from an employee mailbox.",
+          "severity": "MEDIUM",
+          "priority": 5,
+          "correct": "stop",
+          "leak": 8,
+          "heat": 11,
+          "clue": "Mailbox export from an unfamiliar session"
+        },
+        {
+          "id": "contracts",
+          "icon": "📑",
+          "title": "Supplier contracts",
+          "desc": "Try copying confidential pricing agreements.",
+          "severity": "HIGH",
+          "priority": 8,
+          "correct": "stop",
+          "leak": 15,
+          "heat": 20,
+          "clue": "Restricted files copied by an unknown login"
+        },
+        {
+          "id": "archive",
+          "icon": "🗄️",
+          "title": "Shared archive",
+          "desc": "Copy many documents from a shared folder.",
+          "severity": "HIGH",
+          "priority": 7,
+          "correct": "stop",
+          "leak": 21,
+          "heat": 23,
+          "clue": "Unexpected bulk document downloads"
+        }
+      ],
+      "red_secondary_prompt": "Choose the supporting noise",
+      "red_secondary_hint": "An unrelated file alert may be the loudest event.",
+      "red_distraction_choices": [
+        {
+          "id": "backup",
+          "icon": "💾",
+          "title": "Scheduled backup",
+          "desc": "A routine backup triggers a loud notice.",
+          "severity": "CRITICAL",
+          "priority": 1,
+          "correct": "leave",
+          "leak": 0,
+          "heat": 0,
+          "clue": "Approved job; known backup server"
+        },
+        {
+          "id": "public",
+          "icon": "🔗",
+          "title": "Public sharing link",
+          "desc": "Attempt to expose a second file folder.",
+          "severity": "HIGH",
+          "priority": 9,
+          "correct": "stop",
+          "leak": 9,
+          "heat": 15,
+          "clue": "Public link for restricted folder"
+        },
+        {
+          "id": "role_change",
+          "icon": "👥",
+          "title": "Permission request",
+          "desc": "A user requests unusual access.",
+          "severity": "MEDIUM",
+          "priority": 4,
+          "correct": "verify",
+          "leak": 0,
+          "heat": 0,
+          "clue": "Approval not yet confirmed"
+        }
+      ],
+      "potential_ambient_events": [
+        {
+          "id": "audit",
+          "icon": "📋",
+          "title": "Approved audit scan",
+          "desc": "Routine internal file inventory.",
+          "severity": "HIGH",
+          "priority": 1,
+          "correct": "leave",
+          "leak": 0,
+          "heat": 0,
+          "clue": "Valid audit change number"
+        },
+        {
+          "id": "outside",
+          "icon": "🕒",
+          "title": "Files opened at night",
+          "desc": "Repeated file access outside shift hours.",
+          "severity": "MEDIUM",
+          "priority": 5,
+          "correct": "verify",
+          "leak": 0,
+          "heat": 0,
+          "clue": "Needs owner confirmation"
+        },
+        {
+          "id": "folder",
+          "icon": "📁",
+          "title": "Bulk folder rename",
+          "desc": "Multiple folders renamed in one location.",
+          "severity": "LOW",
+          "priority": 2,
+          "correct": "verify",
+          "leak": 0,
+          "heat": 0,
+          "clue": "No copies or exports observed"
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "engine_stage_id": "transfer",
+      "name": "FINAL DATA TRANSFER",
+      "subtitle": "Last round. Find the real data-loss risk before it is too late.",
+      "phase": "ATTACK PHASE",
+      "theme": "Outbound activity begins while other alarms compete for attention.",
+      "red_main_prompt": "How much data will you try to take?",
+      "red_main_hint": "A bigger transfer has a larger reward — and a larger warning.",
+      "red_main_choices": [
+        {
+          "id": "small",
+          "icon": "📩",
+          "title": "A few documents",
+          "desc": "Send a handful of valuable files outside.",
+          "severity": "MEDIUM",
+          "priority": 5,
+          "correct": "stop",
+          "leak": 13,
+          "heat": 7,
+          "clue": "Unknown external destination"
+        },
+        {
+          "id": "medium",
+          "icon": "📦",
+          "title": "Several folders",
+          "desc": "Move several contract folders.",
+          "severity": "HIGH",
+          "priority": 8,
+          "correct": "stop",
+          "leak": 31,
+          "heat": 17,
+          "clue": "Many files; unfamiliar cloud destination"
+        },
+        {
+          "id": "large",
+          "icon": "🌐",
+          "title": "Everything accessible",
+          "desc": "Move the entire reachable dataset.",
+          "severity": "CRITICAL",
+          "priority": 10,
+          "correct": "stop",
+          "leak": 58,
+          "heat": 28,
+          "clue": "Large outbound spike; sensitive filenames"
+        }
+      ],
+      "red_secondary_prompt": "Launch your final distraction",
+      "red_secondary_hint": "A loud alert might be harmless — or another theft attempt.",
+      "red_distraction_choices": [
+        {
+          "id": "forward",
+          "icon": "📨",
+          "title": "Secret mail forwarding",
+          "desc": "Try sending a second stream of mail outside.",
+          "severity": "HIGH",
+          "priority": 9,
+          "correct": "stop",
+          "leak": 16,
+          "heat": 10,
+          "clue": "New forwarding rule to an outside mailbox"
+        },
+        {
+          "id": "scanner",
+          "icon": "🛰️",
+          "title": "Loud network scan",
+          "desc": "Trigger a scary-looking approved scan.",
+          "severity": "CRITICAL",
+          "priority": 1,
+          "correct": "leave",
+          "leak": 0,
+          "heat": 0,
+          "clue": "Known scanner IP and change ticket"
+        },
+        {
+          "id": "supplier",
+          "icon": "🧾",
+          "title": "Supplier email follow-up",
+          "desc": "Generate a payment-related notification.",
+          "severity": "MEDIUM",
+          "priority": 3,
+          "correct": "verify",
+          "leak": 0,
+          "heat": 0,
+          "clue": "Payment request needs supplier confirmation"
+        }
+      ],
+      "potential_ambient_events": [
+        {
+          "id": "sync",
+          "icon": "☁️",
+          "title": "Cloud backup transfer",
+          "desc": "Approved backup sends files to company storage.",
+          "severity": "HIGH",
+          "priority": 1,
+          "correct": "leave",
+          "leak": 0,
+          "heat": 0,
+          "clue": "Approved backup destination"
+        },
+        {
+          "id": "link",
+          "icon": "🔗",
+          "title": "Public contract link",
+          "desc": "Someone published a contract-sharing link.",
+          "severity": "HIGH",
+          "priority": 7,
+          "correct": "stop",
+          "leak": 12,
+          "heat": 8,
+          "clue": "Outside access enabled on restricted file"
+        },
+        {
+          "id": "dlp",
+          "icon": "🚫",
+          "title": "Transfer already blocked",
+          "desc": "Data protection system stopped a file upload.",
+          "severity": "MEDIUM",
+          "priority": 2,
+          "correct": "verify",
+          "leak": 0,
+          "heat": 0,
+          "clue": "Transfer denied; investigate if more occurred"
+        }
+      ]
+    }
+  ],
+  "alert_generation": {
+    "implemented": true,
+    "alerts_per_round": 3,
+    "source_mix": [
+      "1 Red-selected main attack",
+      "1 Red-selected distraction, which may be dangerous, ambiguous, or legitimate",
+      "1 contextual ambient/background event"
+    ],
+    "red_visibility": "Red sees own two selections; does not get Blue cards or their best ordering ahead of time.",
+    "blue_visibility": "Blue sees title, description, icon, visible severity label, and concise evidence clue; not the hidden true priority, correct engine outcome, or which event was the main attack.",
+    "hidden_urgency_range": [
+      1,
+      10
+    ],
+    "severity_labels": [
+      "LOW",
+      "MEDIUM",
+      "HIGH",
+      "CRITICAL"
+    ],
+    "severity_vs_urgency": "Visible severity is deliberately NOT a reliable ranking. A CRITICAL approved backup or scan may have hidden priority 1, while a lower labeled incident might be the real risk.",
+    "deterministic_permutation": "Main, side, ambient are shown in a stage/choice dependent permutation, so attacker identity is not revealed by card position.",
+    "rank_interaction": "Click/tap to add #1, then #2, then #3 to existing stationary cards. Click an assigned card again to remove its rank. Do not reorder or physically move cards; no extra STOP/VERIFY/IGNORE buttons.",
+    "submit_requirement": "Three distinct alert IDs ranked; engine refuses incomplete or duplicate rankings.",
+    "timeout_behavior": "If Blue times out, engine uses current display order as fallback. If Red times out, engine uses the first primary and first distraction option."
+  },
+  "outcomes_and_scoring": {
+    "implemented": true,
+    "scenario_dataset_exposure_value_omr": 100000,
+    "valuation_status": "Fictional risk/exposure scoring currency; NOT real corporate asset value, actual cash stolen, dark-web market price, or validated monetary loss.",
+    "loss_range_percent": [
+      0,
+      100
+    ],
+    "incident_outcomes": [
+      {
+        "code": "contained",
+        "rule": "exactly 0% total data extracted",
+        "title": "THE DATA WAS PROTECTED"
+      },
+      {
+        "code": "partial",
+        "rule": "between 1% and 99% total data extracted",
+        "titles_by_magnitude": "PARTIAL DATA BREACH until under 60%; MAJOR DATA BREACH from 60% through 99%"
+      },
+      {
+        "code": "full",
+        "rule": "exactly 100% data extracted",
+        "title": "COMPLETE DATA LOSS"
+      }
+    ],
+    "triage": {
+      "priority_definition": "Each alert has a hidden integer priority and the ideal order is descending priority.",
+      "pairwise_scoring": "For each of the three pairs among the three alerts, a point is awarded if the higher-urgency item was placed before the lower-urgency item. Equal priorities are not penalized.",
+      "max_points_per_round": 3,
+      "max_points_per_match": 12,
+      "priority_mistakes_per_round_range": [
+        0,
+        3
+      ],
+      "delay_rule": "Only lower-priority events placed before an actionable threat create a missed containment window. Prioritizing a more urgent threat first does not penalize handling the other later.",
+      "normal_handling": "All three events are automatically handled in ranked order; no extra choices after ranking.",
+      "threat_resolution": "A correct=stop threat handled without a lower-priority precursor is contained before it leaks. Delayed stop threats can leak proportional to their configured leak value (rounds 3–4). Verify/leave events are not treated as leaks just because they were displayed.",
+      "delay_leak_rates_from_engine": {
+        "one_lower_urgency_before_alert_at_slot_2": 0.36,
+        "one_lower_urgency_before_alert_at_slot_3": 0.48,
+        "two_lower_urgency_before_alert": 0.88
+      },
+      "preparation_heat_rates": {
+        "one_bad_predecessor": 0.42,
+        "two_bad_predecessors": 0.9
+      },
+      "actionable_alert_leak_calculation": "ceil(alert.leak * delay_rate), summed across applicable events, with final-round adjustments and a cap at 100% total.",
+      "verify_disruption_omr": {
+        "first_in_queue": 220,
+        "second_or_third": 60
+      },
+      "leave_disruption_omr": {
+        "first_in_queue": 380,
+        "second_or_third": 0
+      },
+      "stop_disruption_omr": "0 added by these rules",
+      "disruption_interpretation": "Illustrative attention/wasted-triage cost (from V3), not actual invoice costs or a universal cost for checking legitimate events."
+    },
+    "final_round_adjustments": {
+      "multiplier": "0.70 + min(0.55, accumulated_compromise / 100), applied to round 4 preliminary extracted amount; then ceil and cap to remaining dataset.",
+      "rare_complete_loss_cascade": "An actual 100% result is possible only with accumulated prior exposure, >=6 prior priority mistakes, a high-pressure campaign, and the final Red choices \"large\" + \"forward\" both handled late; see engine.js resolve() for the exact guard.",
+      "exact_engine_condition": "stage===3 && extracted_before_round4>=12 && total_priorityMistakes_before_round4>=6 && pendingRed.primary==='large' && pendingRed.side==='forward' && main.queue===3 && main.wasDelayed && side.wasDelayed && compromise>=18",
+      "all_four_rounds_required_even_on_complete_breach": true
+    },
+    "financial_report_fields": {
+      "data_value_compromised": "round(100000 * extractedPercent / 100)",
+      "data_value_protected": "100000 - compromisedValue",
+      "response_disruption": "sum of simulated triage overhead costs",
+      "combined_impact": "compromisedValue + responseDisruption",
+      "disclaimer": "All figures illustrative, not real LNG prices, criminal profit or measured business losses."
+    },
+    "blue_grade": {
+      "S": "0% extracted AND 12/12 triage points AND 0 priority mistakes",
+      "other_grades_score": "penalty = extractedPercent*1.4 + disruptionOMR/500 + priorityMistakes*7",
+      "A": "penalty <=12 (if S not earned)",
+      "B": "penalty <=32",
+      "C": "penalty <=65",
+      "D": "penalty <=95",
+      "F": "penalty >95"
+    },
+    "red_grade": {
+      "S": "extraction >=70%",
+      "A": "40–69%",
+      "B": "20–39%",
+      "C": "6–19%",
+      "D": "1–5%",
+      "F": "0%"
+    },
+    "engine_properties": [
+      "code",
+      "status",
+      "stage",
+      "turn",
+      "deadline",
+      "pendingRed",
+      "signals",
+      "history",
+      "lastResolution",
+      "extracted",
+      "compromise",
+      "disruption",
+      "redPressure",
+      "triagePoints",
+      "priorityMistakes",
+      "finishedAt",
+      "outcome"
+    ],
+    "best_practice": "Protect scoreboard correctness by keeping resolution in authoritative game engine/server. Screen animations must not change damage or score."
+  },
+  "visual_audio_ux": {
+    "implemented": true,
+    "theme": "Red attacking console vs Blue SIEM console, dark contrast, large readable choice cards, large icons and intuitive clues.",
+    "interfaces": {
+      "red": [
+        "Attack card selector",
+        "Second/distraction card selector",
+        "Clear single launch button",
+        "Four-step side campaign checklist",
+        "Planning/Attack Phase label",
+        "Character GIF (idle or typing)",
+        "Rising red/blue siren lighting after failed primary attacks"
+      ],
+      "blue": [
+        "Three SIEM alert cards",
+        "Visible severity, icon, plain-language description and clue",
+        "Static alert positions; overlay numerical #1/#2/#3 selection badges",
+        "One submit control after exactly three ranks",
+        "Character GIF (idle or typing)",
+        "Increasing flowing matrix code based on confirmed extracted %",
+        "A separate timer-pressure scramble effect explicitly treated as cosmetic"
+      ],
+      "lobby": [
+        "Role presentation",
+        "Five-character room code for LAN game",
+        "Ready state",
+        "Red and Blue cosmetic character options",
+        "Start/Join",
+        "Sound toggle"
+      ],
+      "results": [
+        "Red grade and Blue grade",
+        "Extracted %",
+        "Data value exposed/protected in fictional OMR",
+        "Triage score out of 12",
+        "Priority mistakes",
+        "Response-disruption value",
+        "Round-by-round explanation",
+        "Original-source real-world incident link",
+        "Copy incident summary",
+        "Rematch"
+      ]
+    },
+    "character_animation": {
+      "red_character": "Masked hooded burglar/hacker in black/red (not a real person).",
+      "blue_character": "Stylized Omani SOC analyst wearing kumma and dishdasha (not a real person).",
+      "gif_assets": [
+        "public/assets/red-idle.gif",
+        "public/assets/red-typing.gif",
+        "public/assets/blue-idle.gif",
+        "public/assets/blue-typing.gif"
+      ],
+      "idle_state": "Subtle bobbing/breathing when not actively performing a role action.",
+      "active_state": "Animated typing at a computer when that side is acting.",
+      "cosmetic_selection": [
+        "Red: Masked hacker or Shadow thief",
+        "Blue: Omani SOC analyst or Night-shift analyst"
+      ],
+      "cosmetic_only": true,
+      "note": "Current alternate skins use appearance styling and are not separate dedicated animation sets."
+    },
+    "demo_only_animation": {
+      "red_launch": "Glowing attack/comet travels from Red side and slams into Blue panel with impact flash.",
+      "blue_resolution": "Blue shield dome wraps visible Blue panel when its ordered response is submitted.",
+      "important": "Disable simulated cross-screen collisions for normal two-laptop event mode; only used in solo split-screen demonstration.",
+      "v5_1_shield_fix": "Dome is positioned from the visible Blue content panel bounding rectangle (with 6px inset) relative to split arena; emblem centered using flexbox rather than fractional offsets."
+    },
+    "matrix_effects": {
+      "ambient_blue_rain": "More columns and higher opacity as confirmed extractedPercent increases; not a claim that encryption is happening.",
+      "blue_clock_scramble": "During Blue turn, glyphs progressively scramble with elapsed time as a separate tension effect, and status may say WATCHING LIVE, SYSTEM UNDER THREAT or BREACH IN PROGRESS.",
+      "red_siren": "Flashing red-blue light rises with number of main attack attempts stopped."
+    },
+    "sounds": [
+      "mouse click",
+      "ranking confirmation",
+      "attack launch",
+      "incoming alert",
+      "breach",
+      "contained response",
+      "siren",
+      "final completion",
+      "cash-register-like chime",
+      "matrix decoding tone"
+    ],
+    "audio_implementation": "Browser Web Audio oscillator-based effects; user gesture initializes audio; sound on/off toggle; browser autoplay policies apply.",
+    "visual_effects": [
+      "team-specific screen flashes",
+      "animated alert arrival",
+      "attack collision in demo",
+      "defender shield in demo",
+      "endgame full-screen overlays"
+    ],
+    "final_cinematic": {
+      "intent": "Do not reveal result immediately after last Blue submission; show both teams processing outcome first.",
+      "overlay": "Red: cash settlement/loading. Blue: Matrix digits/decrypting incident report. Then grades and report.",
+      "v5_1_red_value_fix": "Final cash amount is visually hidden with CSS until near the end of the loading animation; it performs approximately 10 brief randomized display ticks, then settles on the true amount. Final results appear only afterward.",
+      "current_timing_ms": {
+        "red_reveal_starts_after": 3550,
+        "rolling_tick_interval": 70,
+        "rolling_ticks": 10,
+        "results_overlay_removed_after": 5050,
+        "loading_progress_animation": 3900
+      },
+      "important": "The randomized rolling digits are purely visual and must NEVER alter actual final money, extracted %, or grading."
+    },
+    "accessibility_notes": [
+      "large quick-to-read copy",
+      "large numbered selection markers",
+      "sound mute",
+      "CSS prefers-reduced-motion support; demo impact hidden under reduced-motion preference",
+      "maintain adequate contrast",
+      "animations must not obscure actual clue text"
+    ]
+  },
+  "real_world_case_studies": {
+    "implemented": true,
+    "design_intent": "Link the final outcome to a credible, related real cyber incident with a lesson; avoid misleading claims of exact equivalence or LNG data market prices.",
+    "existing_examples_from_engine": [
+      {
+        "incident": "Dropbox 2022 phishing incident",
+        "outcome_use": "0%-35% extracted (with different text for 0% vs nonzero)",
+        "source": "Dropbox Security Team",
+        "url": "https://dropbox.tech/security/a-recent-phishing-campaign-targeting-dropbox",
+        "detail": "Attackers accessed a GitHub organization and copied 130 code repositories; illustrates phishing impact. Historical incident differs from game scenario."
+      },
+      {
+        "incident": "MGM Resorts 2023 cyber incident",
+        "outcome_use": "over 35% extracted",
+        "source": "MGM Resorts SEC Form 8-K",
+        "url": "https://www.sec.gov/Archives/edgar/data/789570/000119312523251667/d461062d8k.htm",
+        "detail": "Approximately US$100 million negative impact on adjusted property EBITDAR from September 2023 disruption, a distinct real case; NOT a value estimate for fictional LNG theft."
+      }
+    ],
+    "production_note": "Reverify source links and exact wording before external/public display."
+  },
+  "technical_architecture": {
+    "implemented": true,
+    "technology": [
+      "Vanilla HTML",
+      "CSS",
+      "JavaScript",
+      "Node.js 18+ standard library HTTP server",
+      "Server-Sent Events for live updates"
+    ],
+    "runtime_dependency_install_required": false,
+    "source_files": {
+      "logic": "public/engine.js",
+      "browser_view_and_interaction": "public/app.js",
+      "styles": "public/styles.css",
+      "html_shell": "public/index.html",
+      "multiplayer_api_and_static_server": "server.js",
+      "bundled_offline_single_file": "PLAY-OFFLINE-SOLO.html",
+      "package_metadata": "package.json",
+      "art_assets": "public/assets/*.gif",
+      "docs": [
+        "README.md",
+        "DESIGN_NOTES.md"
+      ],
+      "tests": [
+        "tests/engine.test.js",
+        "tests/server.test.js",
+        "tests/v4-features.test.js",
+        "tests/v5-features.test.js",
+        "tests/browser-smoke.py"
+      ]
+    },
+    "offline_solo": {
+      "launch": "Extract project or download standalone HTML; open PLAY-OFFLINE-SOLO.html in Edge/Chrome; choose Live split-screen demo; start.",
+      "no_server_required": true,
+      "single_html_contains_embedded_assets": true,
+      "behavior": "Two team panes share one in-browser engine state."
+    },
+    "LAN_multiplayer": {
+      "launch_windows": "start-windows.bat",
+      "launch_shell": "./start-mac-linux.sh",
+      "launch_manual": "npm start",
+      "default_port": 3000,
+      "default_host": "0.0.0.0",
+      "room_code_length": 5,
+      "roles": [
+        "red",
+        "blue",
+        "spectator"
+      ],
+      "red_starts_match": true,
+      "blue_joins_by_room_code": true,
+      "server_authoritative_turn_management": true,
+      "real_time_updates": "SSE events plus fallback 5-second polling",
+      "storage": "Rooms are in server RAM; browser stores role/token in sessionStorage. No persistent database.",
+      "room_expiration_hours": 4,
+      "notes": [
+        "Both devices need network access to host IP and chosen port.",
+        "This is a demonstration server, not a hardened production deployment.",
+        "SSE auth uses query token; use TLS, stronger session architecture, and audited hosting for a public event."
+      ]
+    },
+    "API": [
+      {
+        "method": "GET",
+        "path": "/api/health",
+        "description": "Health and count of rooms."
+      },
+      {
+        "method": "POST",
+        "path": "/api/rooms",
+        "description": "Create room, assign Red host credentials."
+      },
+      {
+        "method": "POST",
+        "path": "/api/rooms/{code}/join",
+        "description": "Join as Blue or Spectator."
+      },
+      {
+        "method": "GET",
+        "path": "/api/rooms/{code}?token={token}",
+        "description": "Get role-filtered game state."
+      },
+      {
+        "method": "GET",
+        "path": "/api/rooms/{code}/stream?token={token}",
+        "description": "Subscribe to refresh notifications using SSE."
+      },
+      {
+        "method": "POST",
+        "path": "/api/rooms/{code}/start",
+        "description": "Red host starts match."
+      },
+      {
+        "method": "POST",
+        "path": "/api/rooms/{code}/act",
+        "description": "Submit current-role choice."
+      },
+      {
+        "method": "POST",
+        "path": "/api/rooms/{code}/rematch",
+        "description": "Red host restarts completed match."
+      }
+    ],
+    "request_payload_examples": {
+      "red_action": {
+        "token": "<session token>",
+        "choice": {
+          "primary": "invoice",
+          "side": "manager"
+        }
+      },
+      "blue_action": {
+        "token": "<session token>",
+        "choice": {
+          "order": [
+            "e1",
+            "e2",
+            "e3"
+          ]
+        }
+      },
+      "note": "The three e1/e2/e3 keys are assigned to generated alerts, and display order is shuffled; submit IDs in player selected sequence."
+    },
+    "security_disclaimer": "Simulation only: no phishing emails sent, no credential capture, no exploit execution, and no actual file exfiltration."
+  },
+  "testing": {
+    "last_reported_engine_server_tests_passed": 12,
+    "command": "npm test",
+    "v5_1_verification": "12/12 Node automated tests passed after fixing shield alignment and money-reveal behavior.",
+    "test_scenarios": [
+      "Four mandatory rounds even after early successful defense",
+      "All relevant combinations correctly rankable",
+      "Wrong alert order causes measurable late-response harm",
+      "Timeout applies fallback rank/choices",
+      "Exactly three unique ranks required",
+      "Red/Blue roles isolated over LAN",
+      "Match rematch and spectator",
+      "Worst case 100% simulated extraction possible",
+      "Perfect Blue ordering prevents all extraction",
+      "One late response cannot instantly cause full loss",
+      "Rounds 1–2 never extract data",
+      "Extraction never exceeds 100%"
+    ],
+    "limitations": [
+      "This test count does not prove every browser size/device was manually reviewed after V5.1.",
+      "Usability and game balance need real participant testing."
+    ]
+  },
+  "revision_history": [
+    {
+      "version": "Concept",
+      "status": "origin",
+      "changes": [
+        "Proposed two-laptop, two-player Red vs Blue turn-based competition for Security Week.",
+        "Attack selection plus defensive reaction, multiple-choice language that any employee understands quickly.",
+        "30-second turn, under-six-minute total event target; total fictional LNG assets with no, partial, or complete extraction; end grades and real incident facts."
+      ]
+    },
+    {
+      "version": "V1",
+      "status": "superseded",
+      "changes": [
+        "Initial phishing proof-of-concept had 4 attack/defense stages and explicit Blue response choices like block, investigate, ignore.",
+        "Early containment could make Blue too strong and matches end without much gameplay."
+      ]
+    },
+    {
+      "version": "V2",
+      "status": "superseded",
+      "changes": [
+        "Red gained primary attack plus distractions and three simultaneous SIEM events.",
+        "Blue sorted events and chose separate block/check/ignore actions (six actions total).",
+        "Overreaction/wasted time penalties.",
+        "Four rounds guaranteed."
+      ]
+    },
+    {
+      "version": "V3",
+      "status": "superseded_by_v4",
+      "changes": [
+        "Removed all Blue action buttons; Blue ONLY orders three alerts.",
+        "Severity intentionally differs from urgency; ranking delays drive data loss.",
+        "Fixed visible numbered picks rather than excessive decisions.",
+        "Sound effects, screen flashes, Blue Matrix theme and Red failed-attack sirens."
+      ]
+    },
+    {
+      "version": "V4",
+      "status": "superseded_by_v5",
+      "changes": [
+        "Offline solo split-screen shows simultaneous Red/Blue views and immediate Red-to-Blue alerts.",
+        "Blue data-rain grows with real game loss.",
+        "Cinematic final loading/score reveal for both sides.",
+        "Full 100% data extraction made attainable in rare extreme bad-defense scenario."
+      ]
+    },
+    {
+      "version": "V5",
+      "status": "superseded_by_v5_1",
+      "changes": [
+        "Side roadmap with 2 planning rounds and 2 attack rounds, hiding extraction until it can actually occur.",
+        "Static Blue alert cards gain rank numbers; no card reshuffle after selection.",
+        "Animated Red hooded attacker and Blue Omani analyst, idle and typing GIFs; optional cosmetic appearances.",
+        "Demo-only Red projectile crashing into Blue and Blue shield effect."
+      ]
+    },
+    {
+      "version": "V5.1",
+      "status": "current",
+      "changes": [
+        "Blue shield dome aligned to visible Blue content panel using element bounds/inset and centered insignia.",
+        "Red cinematic final amount hidden during loading, then animated random digit roll, ending on true amount before score display.",
+        "Existing engine and server tests still pass (12/12)."
+      ]
+    }
+  ],
+  "implementation_guidance_for_teammate": {
+    "use_this_json_for": "Functional specification and migration checklist; keep teammate’s project structure rather than forcibly replacing it.",
+    "must_keep_unchanged": [
+      "Only phishing in first released demo",
+      "Red chooses main attack + one distraction",
+      "Blue sees three alerts and chooses PRIORITY ORDER ONLY",
+      "30 seconds per side; 4 mandatory rounds",
+      "No data extraction in rounds 1–2",
+      "Delays, not arbitrary outcomes, cause losses",
+      "Fictional data value and clear disclaimer",
+      "Split-screen solo demonstration + real two-laptop mode",
+      "All game scores are resolved by shared authoritative logic",
+      "Cinematic finale reveals grades only after processing"
+    ],
+    "migration_sequence": [
+      "Review teammate’s current state model and UI flow.",
+      "Port STAGES dataset + buildSignals and resolve/grade/report logic first.",
+      "Wire Red choices to alert generation and role-filter Blue evidence.",
+      "Implement numbered fixed-card Blue rank selection with no second action stage.",
+      "Enforce phases and prevent early match conclusion.",
+      "Add scoreboard, data loss and real-world case study debrief.",
+      "Add role-based character animations, growing Matrix rain/sirens, and demo-only projectile/shield.",
+      "Recreate delayed finale with real amount concealed until number roller finishes.",
+      "Run the automated suite and manually play an early-defense and 100%-breach run."
+    ],
+    "explicitly_not_required_now": [
+      "More attack categories beyond phishing",
+      "A live SIEM integration",
+      "Real LNG asset data",
+      "Actual monetary calculations of criminal resale value",
+      "Production cloud hosting",
+      "True intrusion/exfiltration behavior"
+    ],
+    "recommended_future_work_not_yet_approved": [
+      "Usability test 10–20 mixed-technical participants",
+      "Accessibility check for flashes/motion/color vision",
+      "Balance playtest with 30-second turns",
+      "Consider adaptive difficulty and more scenarios after phishing MVP is stable",
+      "Harden authentication, server storage and event-hosting workflow before broader deployment"
+    ],
+    "known_open_questions": [
+      "Choose whether game grade weighting should change after stakeholder feedback.",
+      "Decide which additional real incident examples will be reviewed/approved for the booth.",
+      "Decide whether optional character skins get distinct art or remain CSS variants.",
+      "Finalize event-screen layout for actual laptop dimensions and possible projector."
+    ]
+  },
+  "handoff_files": {
+    "full_project_zip": "INCIDENT-ATTACK-V5.1.zip",
+    "offline_demo_inside_project": "incident-attack-v5/PLAY-OFFLINE-SOLO.html",
+    "primary_engine_inside_project": "incident-attack-v5/public/engine.js",
+    "source_of_truth": "V5.1 files with this JSON; earlier revisions listed for history only",
+    "note": "This JSON is a specification snapshot, not the source code or a replacement for the playable ZIP."
+  }
+}

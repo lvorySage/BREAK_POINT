@@ -15,7 +15,7 @@ export default function Title({ onStart, onLeaderboard }) {
 
   useEffect(() => {
     setTheme('');
-    const onKey = (e) => { if (e.key === '1') start('blue'); if (e.key === '2') start('red'); if (e.key === '3') start('versus'); };
+    const onKey = (e) => { if (e.key === '1') start('blue'); if (e.key === '2') start('red'); if (e.key === '3') start('versus'); if (e.key === '4') start('incident'); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   });
@@ -48,6 +48,14 @@ export default function Title({ onStart, onLeaderboard }) {
             <span className="mode-cta">Battle →</span>
           </button>
         </div>
+        <button type="button" className="mode incident" onClick={() => start('incident')}>
+          <span className="mode-icon">🎣</span>
+          <span className="mode-text">
+            <span className="mode-name">Incident Attack · 2 players</span>
+            <span className="mode-sub">Split screen. Red runs a phishing campaign; Blue sorts the SOC&apos;s alerts. 4 rounds, 30 seconds a turn.</span>
+          </span>
+          <span className="mode-cta">Play →</span>
+        </button>
         <div className="mini-lb">
           <div><h3 className="b">🛡️ Top defenders</h3><Top3 list={lb.blue} /></div>
           <div><h3 className="r">🗡️ Top attackers</h3><Top3 list={lb.red} /></div>

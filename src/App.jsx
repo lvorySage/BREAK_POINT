@@ -4,6 +4,7 @@ import Title from './screens/Title.jsx';
 import Campaign from './screens/Campaign.jsx';
 import Versus from './screens/Versus.jsx';
 import Leaderboard from './screens/Leaderboard.jsx';
+import IncidentAttack from './screens/IncidentAttack.jsx';
 import { Sound } from './lib/sound.js';
 
 export default function App() {
@@ -39,11 +40,14 @@ export default function App() {
     case 'versus':
       screen = <Versus key={route.run} onExit={home} onRestart={() => go('versus')} />;
       break;
+    case 'incident':
+      screen = <IncidentAttack key={route.run} onExit={home} muted={muted} onToggleMute={toggleMute} />;
+      break;
     case 'leaderboard':
       screen = <Leaderboard key={route.run} onExit={home} />;
       break;
     default:
-      screen = <Title key={route.run} onStart={(m) => (m === 'versus' ? go('versus') : go('campaign', { mode: m }))} onLeaderboard={() => go('leaderboard')} />;
+      screen = <Title key={route.run} onStart={(m) => (m === 'versus' || m === 'incident' ? go(m) : go('campaign', { mode: m }))} onLeaderboard={() => go('leaderboard')} />;
   }
 
   return (
