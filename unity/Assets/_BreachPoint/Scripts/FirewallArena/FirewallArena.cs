@@ -194,9 +194,9 @@ namespace BreachPoint
         public static void PlaceCamera(Camera cam)
         {
             if (cam == null) return;
-            cam.transform.position = new Vector3(0, 27f, -25f);
-            cam.transform.LookAt(new Vector3(0, 0, 1.2f));
-            cam.fieldOfView = 46f;
+            cam.transform.position = new Vector3(1.5f, 28f, -26f);
+            cam.transform.LookAt(new Vector3(1.5f, 0, 1.4f));
+            cam.fieldOfView = 47f;
         }
 
         // ================================================================== simulation

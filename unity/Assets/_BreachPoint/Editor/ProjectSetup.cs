@@ -61,28 +61,37 @@ namespace BreachPoint.EditorTools
 
 namespace BreachPoint.EditorTools
 {
-    /// <summary>The editor's ▶ Play button always starts the game from Main.unity, whatever scene is open.</summary>
+    /// <summary>
+    /// The editor's ▶ Play button starts the game from Main.unity, whatever scene is open.
+    /// Decided at the moment Play is pressed, so Unity's test runner (which enters play mode in its own
+    /// "InitTestScene…") and command-line runs are never redirected.
+    /// </summary>
     [InitializeOnLoad]
     public static class PlayStartsGame
     {
-        static PlayStartsGame() => EditorApplication.delayCall += Apply;
+        static bool _skipNext;
 
-        public static void Apply()
+        static PlayStartsGame()
         {
+            EditorSceneManager.playModeStartScene = null;
+            EditorApplication.playModeStateChanged += OnPlayModeChanged;
+        }
+
+        static void OnPlayModeChanged(PlayModeStateChange change)
+        {
+            if (change != PlayModeStateChange.ExitingEditMode) return;
+            var active = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            bool testRun = Application.isBatchMode || active.name.StartsWith("InitTestScene");
+            if (_skipNext || testRun)
+            {
+                EditorSceneManager.playModeStartScene = null;
+                _skipNext = false;
+                return;
+            }
             EditorSceneManager.playModeStartScene = AssetDatabase.LoadAssetAtPath<SceneAsset>(ProjectSetup.MainScene);
         }
 
-        /// <summary>Play a different scene once (e.g. Controller Check), then restore.</summary>
-        public static void PlayOtherSceneOnce()
-        {
-            EditorSceneManager.playModeStartScene = null;
-            void OnChange(PlayModeStateChange s)
-            {
-                if (s != PlayModeStateChange.EnteredEditMode) return;
-                EditorApplication.playModeStateChanged -= OnChange;
-                Apply();
-            }
-            EditorApplication.playModeStateChanged += OnChange;
-        }
+        /// <summary>Play the currently open scene once (e.g. Controller Check) instead of the game.</summary>
+        public static void PlayOtherSceneOnce() => _skipNext = true;
     }
 }

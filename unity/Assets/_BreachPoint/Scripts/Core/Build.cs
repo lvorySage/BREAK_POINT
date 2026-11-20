@@ -167,6 +167,8 @@ namespace BreachPoint
 
         public static void Show(Vector3 worldPos, string text, Color c, float size = 0.13f)
         {
+            // Slight random offset so simultaneous popups don't stack on top of each other.
+            worldPos += new Vector3(Random.Range(-0.9f, 0.9f), Random.Range(0f, 0.6f), Random.Range(-0.4f, 0.4f));
             var tm = Shapes.Text3D(null, text, worldPos, size, c);
             tm.gameObject.name = "Popup";
             var p = tm.gameObject.AddComponent<Popup>();

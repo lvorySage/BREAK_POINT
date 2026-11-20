@@ -22,7 +22,7 @@ namespace BreachPoint.Tests
             Assert.AreEqual(1, Leaderboard.Add("AAA", Team.Red, 50));
             Assert.AreEqual(1, Leaderboard.Add("BBB", Team.Blue, 90));
             Assert.AreEqual(3, Leaderboard.Add("CCC", Team.Red, 10));
-            Assert.AreEqual(2, Leaderboard.Add("DDD", Team.Blue, 50), "ties keep the earlier score ahead");
+            Assert.AreEqual(3, Leaderboard.Add("DDD", Team.Blue, 50), "ties keep the earlier score (AAA) ahead");
             var list = Leaderboard.Load();
             CollectionAssert.AreEqual(new[] { "BBB", "AAA", "DDD", "CCC" }, list.ConvertAll(e => e.Initials));
             Assert.AreEqual("BLUE", list[0].Team);

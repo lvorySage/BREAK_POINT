@@ -115,8 +115,8 @@ namespace BreachPoint
                 for (int i = 0; i < n; i++)
                 {
                     float t = (i + 0.5f) / n;
-                    var p = Vector3.Lerp(a, b, t) + Vector3.up * (h + 0.25f);
-                    Shapes.Box(root, "Merlon", p, alongZ ? new Vector3(thick, 0.5f, 0.55f) : new Vector3(0.55f, 0.5f, thick), stone);
+                    var p = Vector3.Lerp(a, b, t) + Vector3.up * (h + 0.2f);
+                    Shapes.Box(root, "Merlon", p, alongZ ? new Vector3(thick, 0.4f, 0.5f) : new Vector3(0.5f, 0.4f, thick), stone);
                 }
             }
 
@@ -127,47 +127,47 @@ namespace BreachPoint
                 for (int i = 0; i < 8; i++)
                 {
                     float a = i / 8f * Mathf.PI * 2f;
-                    Shapes.Box(root, "Merlon", p + new Vector3(Mathf.Cos(a) * r * 0.85f, h + 0.25f, Mathf.Sin(a) * r * 0.85f), new Vector3(0.5f, 0.5f, 0.5f), stone);
+                    Shapes.Box(root, "Merlon", p + new Vector3(Mathf.Cos(a) * r * 0.85f, h + 0.2f, Mathf.Sin(a) * r * 0.85f), new Vector3(0.4f, 0.4f, 0.4f), stone);
                 }
                 Shapes.Box(root, "Window", p + new Vector3(-r * 0.98f, h * 0.6f, 0), new Vector3(0.06f, 0.6f, 0.3f), lantern, false);
             }
 
-            Battlement(new Vector3(back, 0, -side), new Vector3(back, 0, side), 4.2f, 0.9f);
-            Battlement(new Vector3(FortFrontX, 0, side), new Vector3(back, 0, side), 3.2f, 0.7f);
-            Battlement(new Vector3(FortFrontX, 0, -side), new Vector3(back, 0, -side), 3.2f, 0.7f);
+            Battlement(new Vector3(back, 0, -side), new Vector3(back, 0, side), 2.6f, 0.8f);
+            Battlement(new Vector3(FortFrontX, 0, side), new Vector3(back, 0, side), 2.0f, 0.6f);
+            Battlement(new Vector3(FortFrontX, 0, -side), new Vector3(back, 0, -side), 2.0f, 0.6f);
 
             // Front wall: low battlements with a gate in front of each system.
             float prev = -side;
             foreach (var lane in Lanes)
             {
-                Battlement(new Vector3(FortFrontX, 0, prev), new Vector3(FortFrontX, 0, lane - GateHalfWidth), 1.6f, 0.7f);
+                Battlement(new Vector3(FortFrontX, 0, prev), new Vector3(FortFrontX, 0, lane - GateHalfWidth), 1.1f, 0.6f);
                 foreach (var dz in new[] { -GateHalfWidth, GateHalfWidth })
                 {
-                    Shapes.Box(root, "GatePost", new Vector3(FortFrontX, 1.2f, lane + dz), new Vector3(0.9f, 2.4f, 0.5f), stoneDark);
-                    Shapes.Box(root, "Lantern", new Vector3(FortFrontX - 0.5f, 2.1f, lane + dz), new Vector3(0.18f, 0.3f, 0.18f), lantern, false);
+                    Shapes.Box(root, "GatePost", new Vector3(FortFrontX, 0.9f, lane + dz), new Vector3(0.8f, 1.8f, 0.45f), stoneDark);
+                    Shapes.Box(root, "Lantern", new Vector3(FortFrontX - 0.45f, 1.6f, lane + dz), new Vector3(0.18f, 0.28f, 0.18f), lantern, false);
                 }
                 prev = lane + GateHalfWidth;
             }
-            Battlement(new Vector3(FortFrontX, 0, prev), new Vector3(FortFrontX, 0, side), 1.6f, 0.7f);
+            Battlement(new Vector3(FortFrontX, 0, prev), new Vector3(FortFrontX, 0, side), 1.1f, 0.6f);
 
-            Tower(new Vector3(FortFrontX, 0, side), 1.4f, 4.6f);
-            Tower(new Vector3(FortFrontX, 0, -side), 1.4f, 4.6f);
-            Tower(new Vector3(back, 0, side), 1.7f, 5.6f);
-            Tower(new Vector3(back, 0, -side), 1.7f, 5.6f);
+            Tower(new Vector3(FortFrontX, 0, side), 1.1f, 2.8f);
+            Tower(new Vector3(FortFrontX, 0, -side), 1.1f, 2.8f);
+            Tower(new Vector3(back, 0, side), 1.3f, 3.4f);
+            Tower(new Vector3(back, 0, -side), 1.3f, 3.4f);
             Shapes.Box(root, "Courtyard", new Vector3((FortFrontX + back) / 2f, 0.02f, 0), new Vector3(back - FortFrontX, 0.02f, side * 2), Mats.Lit(new Color(0.5f, 0.4f, 0.28f), 0.3f), false);
-            Shapes.PointLight(root, new Vector3(17f, 4f, 0), new Color(1f, 0.75f, 0.45f), 14f, 2.2f);
+            Shapes.PointLight(root, new Vector3(17f, 3.5f, 0), new Color(1f, 0.75f, 0.45f), 14f, 2.2f);
 
             // Banner above the fort, always facing the camera.
             var banner = new GameObject("Banner").transform;
             banner.SetParent(root, false);
-            banner.localPosition = new Vector3(17.2f, 7.2f, 0f);
+            banner.localPosition = new Vector3(19.6f, 9.5f, 2f);
             banner.gameObject.AddComponent<Billboard>();
             var gold = new Color(1f, 0.78f, 0.35f);
-            Shapes.Box(banner, "Board", Vector3.zero, new Vector3(13.5f, 2.3f, 0.15f), Mats.Lit(new Color(0.05f, 0.05f, 0.07f), 0.5f), false);
-            Shapes.Box(banner, "Edge", new Vector3(0, 1.17f, 0), new Vector3(13.5f, 0.08f, 0.2f), Mats.Glow(gold, 2f), false);
-            Shapes.Box(banner, "Edge", new Vector3(0, -1.17f, 0), new Vector3(13.5f, 0.08f, 0.2f), Mats.Glow(gold, 2f), false);
-            Shapes.Text3D(banner, "OmanLNG  ×  Otech SOC", new Vector3(0, 0.3f, -0.12f), 0.15f, gold, false, Fonts.Title);
-            Shapes.Text3D(banner, "SECURITY OPERATIONS CENTRE", new Vector3(0, -0.62f, -0.12f), 0.07f, Palette.Text, false);
+            Shapes.Box(banner, "Board", Vector3.zero, new Vector3(11f, 1.9f, 0.15f), Mats.Lit(new Color(0.05f, 0.05f, 0.07f), 0.5f), false);
+            Shapes.Box(banner, "Edge", new Vector3(0, 0.97f, 0), new Vector3(11f, 0.07f, 0.2f), Mats.Glow(gold, 2f), false);
+            Shapes.Box(banner, "Edge", new Vector3(0, -0.97f, 0), new Vector3(11f, 0.07f, 0.2f), Mats.Glow(gold, 2f), false);
+            Shapes.Text3D(banner, "OmanLNG  ×  Otech SOC", new Vector3(0, 0.22f, -0.12f), 0.12f, gold, false, Fonts.Title);
+            Shapes.Text3D(banner, "SECURITY OPERATIONS CENTRE", new Vector3(0, -0.55f, -0.12f), 0.055f, Palette.Text, false);
         }
 
         void BuildServers()

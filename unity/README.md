@@ -32,13 +32,21 @@ For the best view, maximise the Game view (**Shift + Space** over it) at 16:9.
 | Phishing / Email filter | A · ✕ | F | 1 |
 | Malware / Antivirus | B · ○ | G | 2 |
 | DDoS / Rate limiter | X · □ | H | 3 |
+| Password attack / MFA | Y · △ | T | 4 |
 | Boost | RT / R1 | Left Shift | Right Shift |
 | Aim at a server (optional) | Right stick | (lane follows your position) | |
-| Pause | Start / Options | Esc | Esc |
+| Pause (any time, any controller) | Start / Options | Esc or P | Esc or P |
 
 Attacker: line up with a server and fire. Defender: get in front of the shot and pick the matching shield.
 Right shield blocks the shot and bounces it back (stunning the attacker); the wrong shield lets data through.
-A rate limiter filters a whole DDoS burst. The winner is whoever stole more data while attacking.
+A rate limiter filters a whole DDoS burst, and MFA stops a whole chain of password attempts.
+The winner is whoever stole more data while attacking.
+
+**Pause menu:** Resume · Restart this game · Sound on/off · Quit to title.
+
+**Leaderboard:** top scores show on the title screen (saved on this computer). Points = data stolen + 5 per block.
+After a match, players enter 3-letter initials (stick up/down, A next, B back).
+Clear it before the event with **Breach Point → Reset Leaderboard**.
 
 Art is placeholder (code-built neon shapes); the art pass swaps in models without changing the rules.
 
