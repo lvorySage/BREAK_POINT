@@ -17,6 +17,43 @@ The console-style sequel to the web prototype: local multiplayer with Xbox and P
 3. **Projects → Add → Add project from disk** → choose this `unity/` folder.
    The first open takes a few minutes: Unity downloads the packages and builds `Library/` (which git ignores).
 
+## Play (first test build)
+
+Menu **Breach Point → Play Game (Main scene)**, or open `Assets/_BreachPoint/Scenes/Main.unity` and press ▶ Play.
+For the best view, maximise the Game view (**Shift + Space** over it) at 16:9.
+
+1. **Title:** whoever presses **A / ✕** first is Player 1 (Red).
+2. **Join:** Player 2 presses **A / ✕**. No second player? Press **Y / △** (keyboard **Tab**) for a CPU opponent.
+3. **Firewall Arena:** 2 halves of 60 s; Red and Blue swap attacker/defender at half-time.
+
+| | Gamepad | Keyboard (Red) | Keyboard (Blue) |
+|---|---|---|---|
+| Move | Left stick / D-pad | W A S D | Arrows |
+| Phishing / Email filter | A · ✕ | F | 1 |
+| Malware / Antivirus | B · ○ | G | 2 |
+| DDoS / Rate limiter | X · □ | H | 3 |
+| Boost | RT / R1 | Left Shift | Right Shift |
+| Aim at a server (optional) | Right stick | (lane follows your position) | |
+| Pause | Start / Options | Esc | Esc |
+
+Attacker: line up with a server and fire. Defender: get in front of the shot and pick the matching shield.
+Right shield blocks the shot and bounces it back (stunning the attacker); the wrong shield lets data through.
+A rate limiter filters a whole DDoS burst. The winner is whoever stole more data while attacking.
+
+Art is placeholder (code-built neon shapes); the art pass swaps in models without changing the rules.
+
+## Automated tests
+
+**Window → General → Test Runner → PlayMode → Run All** (11 tests: the rules, plus a full two-gamepad playthrough).
+From a terminal, with the editor closed:
+
+```bash
+/Applications/Unity/Hub/Editor/6000.6.10f1/Unity.app/Contents/MacOS/Unity -batchmode -projectPath unity \
+  -runTests -testPlatform PlayMode -testResults results.xml
+```
+
+Set `BP_SHOTS=/some/folder` to also save screenshots of each stage.
+
 ## Check the controllers
 
 Menu **Breach Point → Controller Check Scene**, then press ▶ Play.
@@ -31,9 +68,12 @@ Menu **Breach Point → Controller Check Scene**, then press ▶ Play.
 ```
 Assets/
   _BreachPoint/        ← our code and content
-    Scripts/           runtime C#
-    Editor/            editor tools (menu items)
-    Art/Fonts/         Orbitron, Rajdhani, Share Tech Mono (SIL OFL; licence files alongside)
+    Scenes/Main.unity  the game (one object running GameFlow; everything else is built in code)
+    Scripts/Core/      game flow, input (gamepad/keyboard/CPU), hover vehicle, city, UI kit, rumble, sounds
+    Scripts/FirewallArena/  mini-game 1
+    Tests/             PlayMode tests
+    Editor/            menu items (setup, play, controller check)
+    Resources/         fonts (SIL OFL) and base URP materials loaded at runtime
   Scenes/              template sample scene
   Settings/            URP pipeline + renderer + post-processing profiles (PC and Mobile tiers)
   InputSystem_Actions  default player actions (move, look, attack, jump…) with gamepad bindings
