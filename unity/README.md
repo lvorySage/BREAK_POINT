@@ -4,22 +4,18 @@ The console-style sequel to the web prototype: local multiplayer with Xbox and P
 
 | | |
 |---|---|
-| Engine | **Unity 6.3 LTS** (`6000.3.29f1`) |
+| Engine | **Unity 6.6** (`6000.6.10f1`, Supported release) |
 | Render pipeline | URP (from Unity's *Universal 3D* template) with post-processing volume |
 | Input | Input System only (Xbox, DualSense / DualShock, generic pads; local multiplayer) |
 | Packages | Cinemachine, Splines, ProBuilder, VFX Graph, Timeline, AI Navigation, Visual Scripting |
-| Build targets | macOS (default) + Windows (Mono) |
+| Build target | macOS (the event runs on this Mac) |
 
 ## One-time setup
 
 1. Open **Unity Hub** (already installed in `/Applications`) and sign in. A free Unity account gives the Personal licence.
-2. **Installs → Install Editor → Archive / "All versions"** → **6000.3.29f1** (Unity 6.3 LTS).
-   Tick **Windows Build Support (Mono)** if the event laptops run Windows.
-   Or from a terminal, using Unity's CLI (it adds itself to your shell PATH):
-   `curl -fsSL https://unity.com/install.sh | bash`, then `unity install 6000.3.29f1`.
+2. **Installs → Install Editor** → **6000.6.10f1** (Unity 6.6). Everyone on the team must use this exact version.
 3. **Projects → Add → Add project from disk** → choose this `unity/` folder.
    The first open takes a few minutes: Unity downloads the packages and builds `Library/` (which git ignores).
-4. Commit the `.meta` files Unity generates on that first open.
 
 ## Check the controllers
 
