@@ -4,6 +4,7 @@
     "references": [
         "BreachPoint.Runtime",
         "Unity.InputSystem",
+        "Unity.RenderPipelines.Core.Runtime",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

@@ -222,6 +222,7 @@ namespace BreachPoint
             sun.intensity = 1.1f;
             sun.shadows = LightShadows.Soft;
             sun.transform.rotation = Quaternion.Euler(55f, -35f, 0f);
+            ArtKit.Environment();
         }
 
         public static Volume PostFx()

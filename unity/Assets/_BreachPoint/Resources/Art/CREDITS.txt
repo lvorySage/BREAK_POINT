@@ -1,0 +1,3 @@
+Third-party art in this folder (all CC0 / public domain, no attribution required):
+Poly Haven (polyhaven.com): beige_wall_001 -> FortPlaster, sandstone_blocks_08 -> FortStone,
+  concrete_floor_worn_001 -> RoofConcrete, metal_plate -> MetalPlate, rooftop_night (HDRI) -> RooftopNight.

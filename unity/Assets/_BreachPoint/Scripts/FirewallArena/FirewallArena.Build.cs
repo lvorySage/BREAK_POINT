@@ -33,8 +33,8 @@ namespace BreachPoint
         void BuildArena()
         {
             var root = transform;
-            var slab = Mats.Lit(new Color(0.15f, 0.155f, 0.19f), 0.82f, 0.3f);
-            var wall = Mats.Lit(new Color(0.2f, 0.2f, 0.25f), 0.6f, 0.4f);
+            var slab = ArtKit.TexturedSized("RoofConcrete", new Color(0.36f, 0.37f, 0.43f), new Vector2(14f, 9f), 0.6f, 0.1f);
+            var wall = ArtKit.Textured("MetalPlate", new Color(0.3f, 0.3f, 0.36f), 1f, 0.6f, 0.5f);
             var grid = Mats.Glow(new Color(0.25f, 0.45f, 1f), 0.6f);
             var magenta = Mats.Glow(new Color(1f, 0.2f, 0.7f), 1.8f);
 
@@ -58,7 +58,7 @@ namespace BreachPoint
             for (int i = 0; i < 2; i++)
             {
                 var zone = i == 0 ? AttackerZone : DefenderZone;
-                _zoneFloor[i] = Mats.GlowInstance(Color.white, 0.06f);
+                _zoneFloor[i] = ArtKit.TexturedSized("RoofConcrete", new Color(0.36f, 0.37f, 0.43f), new Vector2(5f, 6f), 0.6f, 0.1f);
                 _zoneLine[i] = Mats.GlowInstance(Color.white, 1.6f);
                 var c = new Vector3(zone.center.x, 0.015f, zone.center.y);
                 Shapes.Box(root, "ZoneFloor", c, new Vector3(zone.width + 2.4f, 0.01f, zone.height + 2.4f), _zoneFloor[i], false);
@@ -98,8 +98,9 @@ namespace BreachPoint
         {
             var root = new GameObject("SOC Fort").transform;
             root.SetParent(transform, false);
-            var stone = Mats.Lit(new Color(0.74f, 0.6f, 0.42f), 0.25f, 0f);
-            var stoneDark = Mats.Lit(new Color(0.56f, 0.44f, 0.3f), 0.2f, 0f);
+            // Omani forts are finished in sand-coloured plaster over stone.
+            var stone = ArtKit.Textured("FortPlaster", new Color(0.98f, 0.84f, 0.62f), 0.6f, 0.12f);
+            var stoneDark = ArtKit.Textured("FortStone", new Color(0.86f, 0.72f, 0.52f), 0.5f, 0.1f);
             var lantern = Mats.Glow(new Color(1f, 0.72f, 0.38f), 2.2f);
             const float back = 19.9f, side = 11.2f;
 
@@ -109,7 +110,8 @@ namespace BreachPoint
                 var len = Vector3.Distance(a, b);
                 bool alongZ = Mathf.Abs(b.z - a.z) > Mathf.Abs(b.x - a.x);
                 var size = alongZ ? new Vector3(thick, h, len) : new Vector3(len, h, thick);
-                Shapes.Box(root, "FortWall", mid + Vector3.up * (h / 2f), size, stone);
+                var wallMat = ArtKit.TexturedSized("FortPlaster", new Color(0.98f, 0.84f, 0.62f), new Vector2(Mathf.Max(1f, len / 2.5f), Mathf.Max(1f, h / 2.5f)), 0.12f);
+                Shapes.Box(root, "FortWall", mid + Vector3.up * (h / 2f), size, wallMat);
                 Shapes.Box(root, "FortTrim", mid + Vector3.up * (h * 0.78f), alongZ ? new Vector3(thick + 0.08f, 0.14f, len) : new Vector3(len, 0.14f, thick + 0.08f), stoneDark);
                 int n = Mathf.Max(1, Mathf.FloorToInt(len / 1.1f));
                 for (int i = 0; i < n; i++)
@@ -156,6 +158,10 @@ namespace BreachPoint
             Tower(new Vector3(back, 0, -side), 1.3f, 3.4f);
             Shapes.Box(root, "Courtyard", new Vector3((FortFrontX + back) / 2f, 0.02f, 0), new Vector3(back - FortFrontX, 0.02f, side * 2), Mats.Lit(new Color(0.5f, 0.4f, 0.28f), 0.3f), false);
             Shapes.PointLight(root, new Vector3(17f, 3.5f, 0), new Color(1f, 0.75f, 0.45f), 14f, 2.2f);
+            // Warm floodlights wash the fort walls (sand colour reads at night).
+            foreach (var z in new[] { -9f, -3f, 3f, 9f })
+                Shapes.PointLight(root, new Vector3(11.5f, 4.5f, z), new Color(1f, 0.82f, 0.6f), 11f, 3.2f);
+            Shapes.PointLight(root, new Vector3(17f, 6f, -14f), new Color(1f, 0.8f, 0.55f), 16f, 3f);
 
             // Banner above the fort, always facing the camera.
             var banner = new GameObject("Banner").transform;
@@ -173,7 +179,7 @@ namespace BreachPoint
         void BuildServers()
         {
             _servers = new Server[Lanes.Length];
-            var rack = Mats.Lit(new Color(0.16f, 0.17f, 0.21f), 0.7f, 0.6f);
+            var rack = ArtKit.Textured("MetalPlate", new Color(0.22f, 0.23f, 0.28f), 1f, 0.7f, 0.7f);
             string[] names = { "CORPORATE IT", "PLANT CONTROL", "LNG SHIPPING" };
             for (int i = 0; i < Lanes.Length; i++)
             {
@@ -181,7 +187,13 @@ namespace BreachPoint
                 var root = new GameObject(names[i]).transform;
                 root.SetParent(transform, false);
                 root.localPosition = new Vector3(ServerX, 0, Lanes[i]);
-                Shapes.Box(root, "Rack", new Vector3(0.4f, 1.8f, 0), new Vector3(2f, 3.6f, 2.4f), rack);
+                var rackBox = Shapes.Box(root, "Rack", new Vector3(0.4f, 1.8f, 0), new Vector3(2f, 3.6f, 2.4f), rack);
+                var rackModel = ArtKit.Model("ServerRack", root);
+                if (rackModel != null)
+                {
+                    ArtKit.Fit(rackModel, new Vector3(2f, 3.6f, 2.4f), new Vector3(0.4f, 1.8f, 0), zForward: false);
+                    rackBox.SetActive(false);
+                }
                 s.Strip = Mats.GlowInstance(new Color(0.3f, 0.95f, 1f), 1.6f);
                 for (int k = 0; k < 5; k++)
                     Shapes.Box(root, "Led", new Vector3(-0.62f, 0.5f + k * 0.62f, 0), new Vector3(0.05f, 0.08f, 2f), s.Strip, false);
@@ -241,8 +253,9 @@ namespace BreachPoint
             }
             _zoneLine[0].SetColor("_BaseColor", Palette.Hdr(_s.Players[AttackerIndex].Color, 2.5f));
             _zoneLine[1].SetColor("_BaseColor", Palette.Hdr(_s.Players[DefenderIndex].Color, 2.5f));
-            _zoneFloor[0].SetColor("_BaseColor", Palette.Hdr(_s.Players[AttackerIndex].Color, 0.07f));
-            _zoneFloor[1].SetColor("_BaseColor", Palette.Hdr(_s.Players[DefenderIndex].Color, 0.07f));
+            var concrete = new Color(0.33f, 0.34f, 0.4f);
+            _zoneFloor[0].SetColor("_BaseColor", Color.Lerp(concrete, _s.Players[AttackerIndex].Color, 0.22f));
+            _zoneFloor[1].SetColor("_BaseColor", Color.Lerp(concrete, _s.Players[DefenderIndex].Color, 0.22f));
         }
 
         void UpdateVisuals(float dt)

@@ -45,7 +45,7 @@ namespace BreachPoint
             _body.localPosition = new Vector3(0, 0.75f, 0);
             _body.localScale = Vector3.one * 1.35f; // bigger body; shield/ground rings keep true gameplay radii
 
-            var hull = Mats.Lit(new Color(0.2f, 0.21f, 0.25f), 0.8f, 0.5f);
+            var hull = ArtKit.Textured("MetalPlate", new Color(0.32f, 0.33f, 0.38f), 1f, 0.75f, 0.6f);
             var paint = Mats.Lit(c, 0.75f, 0.3f, Palette.Hdr(c, 0.5f));
             var glow = Mats.Glow(c, 2.4f);
             var cyan = Mats.Glow(new Color(0.4f, 0.9f, 1f), 2f);
@@ -67,6 +67,18 @@ namespace BreachPoint
             Mount = new GameObject("Mount").transform;
             Mount.SetParent(_body, false);
             Mount.localPosition = new Vector3(0, 0.5f, 0);
+
+            // Art pass: a real hover-craft model replaces the placeholder hull (team glow strips stay).
+            var model = ArtKit.Model("HoverVehicle", _body);
+            if (model != null)
+            {
+                ArtKit.Fit(model, new Vector3(2.4f, 0.9f, 1.6f), new Vector3(0, 0.1f, 0));
+                foreach (var n in new[] { "Hull", "Paint", "Cockpit", "Nose" })
+                {
+                    var t = _body.Find(n);
+                    if (t != null) t.gameObject.SetActive(false);
+                }
+            }
         }
 
         public void Face(Vector3 dir)
