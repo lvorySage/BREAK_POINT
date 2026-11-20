@@ -39,7 +39,7 @@ If a slot is empty, the game keeps its placeholder shapes, so art can be added o
 
 | Slot | Replaces | Fitted to |
 |---|---|---|
-| `HoverVehicle` | Player hull (team glow strips and lights stay) | 2.4 × 0.9 × 1.6 m, nose along +Z |
+| `HoverVehicle` | Player hull, repainted in team colour (installed: Kenney Space Kit `craft_speederB`) | 2.6 × 1.0 × 1.8 m, modelled along X |
 | `ServerRack` | The three server racks in the fort | 2 × 3.6 × 2.4 m |
 
 More slots (ball, goals, track pieces, props) are added as days 3–4 are built.

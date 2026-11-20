@@ -72,8 +72,10 @@ namespace BreachPoint
             var model = ArtKit.Model("HoverVehicle", _body);
             if (model != null)
             {
-                ArtKit.Fit(model, new Vector3(2.4f, 0.9f, 1.6f), new Vector3(0, 0.1f, 0));
-                foreach (var n in new[] { "Hull", "Paint", "Cockpit", "Nose" })
+                // Kenney speeders are modelled lengthwise along X already.
+                ArtKit.Fit(model, new Vector3(2.6f, 1.0f, 1.8f), new Vector3(0, 0.1f, 0), zForward: false);
+                ArtKit.TeamPaint(model, c);
+                foreach (var n in new[] { "Hull", "Paint", "Cockpit", "Nose", "StripL", "StripR" })
                 {
                     var t = _body.Find(n);
                     if (t != null) t.gameObject.SetActive(false);

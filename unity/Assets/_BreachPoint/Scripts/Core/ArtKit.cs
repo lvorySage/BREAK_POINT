@@ -72,6 +72,34 @@ namespace BreachPoint
         }
 
         /// <summary>
+        /// Repaints a model's accent colour (its most saturated materials, e.g. Kenney's orange) in the team colour,
+        /// so Red vs Blue reads instantly. Neutral greys/whites are left alone.
+        /// </summary>
+        public static void TeamPaint(GameObject go, Color team)
+        {
+            foreach (var r in go.GetComponentsInChildren<Renderer>())
+            {
+                var mats = r.materials; // instances: per-vehicle colours
+                foreach (var m in mats)
+                {
+                    string prop = m.HasProperty("_BaseColor") ? "_BaseColor" : m.HasProperty("_Color") ? "_Color" : null;
+                    if (prop == null) continue;
+                    Color.RGBToHSV(m.GetColor(prop), out _, out float sat, out float val);
+                    if (sat > 0.45f && val > 0.3f)
+                    {
+                        m.SetColor(prop, team);
+                        if (m.HasProperty("_EmissionColor"))
+                        {
+                            m.EnableKeyword("_EMISSION");
+                            m.SetColor("_EmissionColor", Palette.Hdr(team, 0.35f));
+                        }
+                    }
+                }
+                r.materials = mats;
+            }
+        }
+
+        /// <summary>
         /// Instantiates Resources/Art/Models/&lt;slot&gt; under parent, or returns null if no model is installed.
         /// Colliders are stripped; shadows on.
         /// </summary>
