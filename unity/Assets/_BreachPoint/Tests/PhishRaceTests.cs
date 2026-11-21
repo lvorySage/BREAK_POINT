@@ -174,6 +174,34 @@ namespace BreachPoint.Tests
         }
 
         [Test]
+        public void Links_GetHarderEachLap()
+        {
+            Assert.AreEqual(0, _g.ForkTier(0), "lap 1: easy links");
+            float P = PhishRace.Perimeter;
+            _g.SetProgress(0, P + PhishRace.ForkExitS[0] - 15f);
+            _g.SetProgress(1, P + PhishRace.ForkExitS[0] - 20f);
+            _g.RefreshForks();
+            Assert.AreEqual(1, _g.ForkTier(0), "lap 2: tricky links");
+            Assert.Contains(_g.ForkLinks(0).Fake, System.Array.ConvertAll(Links.Medium, x => x.Fake));
+            _g.SetProgress(0, 2 * P + PhishRace.ForkExitS[1] - 15f);
+            _g.SetProgress(1, 2 * P + PhishRace.ForkExitS[1] - 20f);
+            _g.RefreshForks();
+            Assert.AreEqual(2, _g.ForkTier(1), "lap 3: expert links");
+            Assert.Contains(_g.ForkLinks(1).Fake, System.Array.ConvertAll(Links.Hard, x => x.Fake));
+        }
+
+        [Test]
+        public void Awareness_CountsRightAndWrongCalls()
+        {
+            _g.SetFork(0, realOuter: true);
+            SimDriving(4.5f, 2f, 0f, p1Drives: false);    // Red takes the real link (easy tier)
+            var r = _g.ComputeResult();
+            Assert.AreEqual(1, r.Right[0]);
+            Assert.AreEqual(0, r.Wrong[0]);
+            Assert.AreEqual(PhishRace.AwareLinkPoints[0], r.Aware[0]);
+        }
+
+        [Test]
         public void CpuOpponents_RaceAFullHeat()
         {
             Random.InitState(4321);

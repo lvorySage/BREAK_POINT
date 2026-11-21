@@ -174,7 +174,8 @@ namespace BreachPoint
                 // Fit long links inside the lane.
                 float chars = tm.text.Length;
                 float width = chars * 0.1f * 128f * 0.1f * 0.52f;
-                if (width > ForkHalf * 2f + 2f) tm.characterSize *= (ForkHalf * 2f + 2f) / width;
+                float maxW = ForkHalf * 2f + 4f; // long expert links may run a little past the lane plate
+                if (width > maxW) tm.characterSize *= maxW / width;
                 _laneFlash[fork, o] = 0.5f;
                 _laneFlashColor[fork, o] = LinkCyan;
             }

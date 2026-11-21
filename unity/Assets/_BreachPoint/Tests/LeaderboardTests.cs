@@ -39,5 +39,27 @@ namespace BreachPoint.Tests
             Assert.AreEqual(10, Leaderboard.Load().Count);
             Assert.IsFalse(Leaderboard.Qualifies(0), "zero never qualifies");
         }
+
+        [Test]
+        public void AwarenessScore_IsGoodCallsPlusAccuracyBonus()
+        {
+            var session = new Session();
+            var a = new MiniGameResult();
+            a.Aware[0] = 50; a.Right[0] = 5; a.Wrong[0] = 0;   // Red: perfect
+            a.Aware[1] = 60; a.Right[1] = 6; a.Wrong[1] = 6;   // Blue: more calls, half wrong
+            session.Record(a);
+            Assert.AreEqual(100, session.Accuracy(0));
+            Assert.AreEqual(50, session.Accuracy(1));
+            Assert.AreEqual(150, session.AwarenessScore(0), "careful player wins the awareness board");
+            Assert.AreEqual(110, session.AwarenessScore(1));
+            Assert.AreEqual(0, new Session().AwarenessScore(0), "no good calls, no score");
+        }
+
+        [Test]
+        public void Entries_KeepAccuracy()
+        {
+            Leaderboard.Add("ACC", Team.Blue, 120, 87);
+            Assert.AreEqual(87, Leaderboard.Load()[0].Accuracy);
+        }
     }
 }

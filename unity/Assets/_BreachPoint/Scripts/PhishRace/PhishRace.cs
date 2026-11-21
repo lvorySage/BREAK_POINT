@@ -28,6 +28,9 @@ namespace BreachPoint
         public const int MaxLures = 3;
         public const float ReportCooldown = 2.5f, ReportRange = 10f;
         public const int HeatWinPoints = 20, SafePoints = 5, LurePoints = 10, ReportPoints = 5;
+        /// <summary>Awareness points for a real link, by difficulty tier (lap); reports earn AwareReportPoints.</summary>
+        public static readonly int[] AwareLinkPoints = { 10, 15, 20 };
+        public const int AwareReportPoints = 10;
         public const float FinishGrace = 8f;       // the other ship gets this long after the leader finishes
 
         public float HalfSeconds = 60f;
@@ -45,6 +48,7 @@ namespace BreachPoint
         public readonly int[] LureHits = new int[2];
         public readonly int[] Reports = new int[2];
         public readonly int[] LuresDropped = new int[2];
+        public readonly int[] AwarePoints = new int[2];
 
         // ---- current heat ----
         public int Half { get; private set; }
@@ -66,7 +70,9 @@ namespace BreachPoint
         public int HeatPoints(int p) => _heatPts[p];
         public int MatchPoints(int p) => _matchPts[p];
         public bool ForkRealIsOuter(int fork) => _realOuter[fork];
-        public Links.Pair ForkLinks(int fork) => Links.All[_pair[fork]];
+        public Links.Pair ForkLinks(int fork) => Links.Tiers[_tier[fork]][_pair[fork]];
+        /// <summary>Difficulty of a fork's current links: 0 easy (lap 1), 1 tricky (lap 2), 2 expert (lap 3).</summary>
+        public int ForkTier(int fork) => _tier[fork];
         public HoverVehicle Vehicle(int player) => _veh[player];
 
         Session _s;
@@ -83,8 +89,10 @@ namespace BreachPoint
         float _lureCd, _reportCd;
         readonly bool[] _realOuter = new bool[2];
         readonly int[] _pair = new int[2];
+        readonly int[] _tier = new int[2];
+        readonly int[] _lapShown = new int[2];
         readonly bool[] _refreshPending = new bool[2];
-        int _lastPair = -1;
+        int _lastPair = -1, _lastTier = -1;
 
         sealed class Lure
         {
@@ -169,6 +177,7 @@ namespace BreachPoint
                 _nextGate[i] = 0;
                 _stall[i] = _surge[i] = 0f;
                 _heatPts[i] = 0;
+                _lapShown[i] = 1;
                 // Grid: just behind the start line, side by side (the attacker takes the outside).
                 float off = i == AttackerIndex ? 2f : -2f;
                 var pos = At(-2.5f, off);
@@ -177,6 +186,8 @@ namespace BreachPoint
                 _lastS[i] = S(pos);
                 _prog[i] = _lastS[i] - Perimeter;
             }
+            _tier[0] = _tier[1] = 0;
+            _pair[0] = _pair[1] = -1;
             for (int f = 0; f < 2; f++) RandomizeFork(f);
             for (int i = 0; i < 2; i++) _veh[i].SetTag($"{_s.Players[i].Name} · {(i == AttackerIndex ? "PHISHER" : "TARGET")}", _s.Players[i].Color);
             _hud.OnHalfStart();
@@ -402,6 +413,13 @@ namespace BreachPoint
                 _nextGate[i]++;
             }
             if (_prog[i] >= Laps * Perimeter) Finish(i);
+            else if (Lap(i) > _lapShown[i])
+            {
+                _lapShown[i] = Lap(i);
+                int t = Mathf.Min(_lapShown[i] - 1, Links.Tiers.Length - 1);
+                _hud.Alert($"LAP {_lapShown[i]}: {Links.TierNames[t]} LINKS AHEAD. Read carefully!", Palette.Gold, i);
+                Popup.Show(_veh[i].transform.position + Vector3.up * 3f, $"LAP {_lapShown[i]}", Palette.Gold, 0.1f);
+            }
         }
 
         /// <summary>Lane choice at a fork's exit: real link = boost, look-alike = phished.</summary>
@@ -414,6 +432,7 @@ namespace BreachPoint
             if (safe)
             {
                 SafeLinks[i]++;
+                AwarePoints[i] += AwareLinkPoints[_tier[fork]];
                 AddPoints(i, SafePoints);
                 _surge[i] = SurgeSeconds;
                 Popup.Show(at, $"REAL LINK +{SafePoints}", Palette.Good, 0.09f);
@@ -447,12 +466,34 @@ namespace BreachPoint
             return false;
         }
 
+        /// <summary>Tier for a fork's next links: the lap on which the nearest racing ship will reach it.</summary>
+        int NextTier(int fork)
+        {
+            float best = float.MaxValue;
+            int tier = 0;
+            for (int i = 0; i < 2; i++)
+            {
+                if (Finished(i)) continue;
+                int g = _nextGate[i];
+                if (g % 2 != fork) g++;
+                if (g >= Laps * 2) continue;
+                float dist = GateS(g) - _prog[i];
+                if (dist < best) { best = dist; tier = Mathf.Min(g / 2, Links.Tiers.Length - 1); }
+            }
+            return tier;
+        }
+
         void RandomizeFork(int fork)
         {
-            int pair;
-            do pair = Random.Range(0, Links.All.Length);
-            while ((pair == _lastPair || pair == _pair[1 - fork] || pair == _pair[fork]) && Links.All.Length > 3);
+            int tier = NextTier(fork);
+            var list = Links.Tiers[tier];
+            int pair, other = _tier[1 - fork] == tier ? _pair[1 - fork] : -1, same = _tier[fork] == tier ? _pair[fork] : -1;
+            int last = _lastTier == tier ? _lastPair : -1;
+            do pair = Random.Range(0, list.Length);
+            while ((pair == last || pair == other || pair == same) && list.Length > 3);
             _lastPair = pair;
+            _lastTier = tier;
+            _tier[fork] = tier;
             _pair[fork] = pair;
             _realOuter[fork] = Random.value < 0.5f;
             _refreshPending[fork] = false;
@@ -537,6 +578,7 @@ namespace BreachPoint
                 return false;
             }
             Reports[DefenderIndex]++;
+            AwarePoints[DefenderIndex] += AwareReportPoints;
             AddPoints(DefenderIndex, ReportPoints);
             _reportCd = ReportCooldown;
             Popup.Show(best.Pos + Vector3.up * 2f, $"REPORTED +{ReportPoints}", Palette.Blue, 0.1f);
@@ -591,6 +633,8 @@ namespace BreachPoint
             _nextGate[i] = 0;
             while (_nextGate[i] < Laps * 2 && GateS(_nextGate[i]) <= progress) _nextGate[i]++;
         }
+
+        public void RefreshForks() { for (int f = 0; f < 2; f++) RandomizeFork(f); }
 
         public void SetFork(int fork, bool realOuter) { _realOuter[fork] = realOuter; ShowForkLinks(fork); }
 
@@ -652,7 +696,7 @@ namespace BreachPoint
         // ================================================================== cards & result
 
         string Legend() =>
-            $"Race {Laps} laps. On each straight the track {Palette.Paint("FORKS", Palette.Gold)}: each lane is painted with a link.\n" +
+            $"Race {Laps} laps (the links get trickier every lap). On each straight the track {Palette.Paint("FORKS", Palette.Gold)}: each lane is painted with a link.\n" +
             $"{Palette.Paint("REAL link", Palette.Good)} (really omanlng.com) = speed boost  ·  {Palette.Paint("LOOK-ALIKE", Palette.Bad)} = PHISHED, you stall.\n\n" +
             $"{Palette.Paint("PHISHER", Palette.Red)}: X / □ drops bait behind you. Hook the target for +{LurePoints}.\n" +
             $"{Palette.Paint("TARGET", Palette.Blue)}: X / □ reports nearby bait (+{ReportPoints}), or just steer around it.\n\n" +
@@ -690,6 +734,13 @@ namespace BreachPoint
             }
             if (_matchPts[0] != _matchPts[1]) r.Winner = _matchPts[0] > _matchPts[1] ? 0 : 1;
             else if (HeatWins[0] != HeatWins[1]) r.Winner = HeatWins[0] > HeatWins[1] ? 0 : 1;
+
+            for (int i = 0; i < 2; i++)
+            {
+                r.Right[i] = SafeLinks[i] + Reports[i];
+                r.Wrong[i] = Phished[i];
+                r.Aware[i] = AwarePoints[i];
+            }
 
             int phished = Phished[0] + Phished[1], reports = Reports[0] + Reports[1];
             r.Lesson = phished > 0

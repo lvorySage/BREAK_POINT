@@ -171,9 +171,12 @@ namespace BreachPoint
 
         static void BuildLeaderboardPanel(Transform parent, Vector2 anchor)
         {
-            var box = Ui.Box(parent, anchor, new Vector2(760, 600), Palette.Gold, "Leaderboard");
+            var box = Ui.Box(parent, anchor, new Vector2(760, 640), Palette.Gold, "Leaderboard");
             var t = box.transform;
-            Ui.Label(t, "TOP DEFENDERS", 34, Palette.Gold, TextAnchor.MiddleCenter, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -62), new Vector2(0, -12), Fonts.Title);
+            Ui.Label(t, "MOST CYBER AWARE", 34, Palette.Gold, TextAnchor.MiddleCenter, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -60), new Vector2(0, -12), Fonts.Title);
+            Ui.Label(t, "Points for every right security call  +  accuracy bonus", 22, Palette.Muted, TextAnchor.MiddleCenter, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -88), new Vector2(0, -58));
+            Ui.Label(t, "ACCURACY", 20, Palette.Muted, TextAnchor.MiddleCenter, new Vector2(0, 1), new Vector2(0, 1), new Vector2(440, -116), new Vector2(570, -90));
+            Ui.Label(t, "SCORE", 20, Palette.Muted, TextAnchor.MiddleRight, new Vector2(0, 1), new Vector2(0, 1), new Vector2(580, -116), new Vector2(720, -90));
             var top = Leaderboard.Load();
             if (top.Count == 0)
             {
@@ -184,14 +187,15 @@ namespace BreachPoint
             for (int i = 0; i < rows; i++)
             {
                 var e = top[i];
-                float y = -78 - i * 50;
+                float y = -116 - i * 50;
                 var c = e.Team == "RED" ? Palette.Red : Palette.Blue;
                 var rankColor = i == 0 ? Palette.Gold : Palette.Text;
                 if (i % 2 == 0) Ui.Panel(t, new Color(1, 1, 1, 0.035f), new Vector2(0, 1), new Vector2(1, 1), new Vector2(16, y - 46), new Vector2(-16, y), "Row");
                 Ui.Label(t, $"{i + 1}.", 30, rankColor, TextAnchor.MiddleRight, new Vector2(0, 1), new Vector2(0, 1), new Vector2(30, y - 46), new Vector2(110, y), Fonts.Mono);
                 Ui.Label(t, e.Initials, 32, rankColor, TextAnchor.MiddleLeft, new Vector2(0, 1), new Vector2(0, 1), new Vector2(150, y - 46), new Vector2(330, y), Fonts.Mono);
-                Ui.Label(t, e.Team, 26, c, TextAnchor.MiddleLeft, new Vector2(0, 1), new Vector2(0, 1), new Vector2(340, y - 46), new Vector2(480, y));
-                Ui.Label(t, $"{e.Score} pts", 30, rankColor, TextAnchor.MiddleRight, new Vector2(0, 1), new Vector2(0, 1), new Vector2(480, y - 46), new Vector2(720, y), Fonts.Mono);
+                Ui.Label(t, e.Team, 26, c, TextAnchor.MiddleLeft, new Vector2(0, 1), new Vector2(0, 1), new Vector2(310, y - 46), new Vector2(430, y));
+                Ui.Label(t, $"{e.Accuracy}%", 28, Palette.Good, TextAnchor.MiddleCenter, new Vector2(0, 1), new Vector2(0, 1), new Vector2(440, y - 46), new Vector2(570, y), Fonts.Mono);
+                Ui.Label(t, $"{e.Score}", 30, rankColor, TextAnchor.MiddleRight, new Vector2(0, 1), new Vector2(0, 1), new Vector2(580, y - 46), new Vector2(720, y), Fonts.Mono);
             }
         }
 
@@ -360,8 +364,17 @@ namespace BreachPoint
                 lines.AppendLine($"{r.Game}:  {w}   ({r.ScoreLabel} {Session.Players[0].Tag} {r.Scores[0]:0}  ·  {Session.Players[1].Tag} {r.Scores[1]:0})");
             }
             lines.AppendLine();
-            lines.AppendLine($"TOTAL POINTS   {Session.Players[0].Tag} {Palette.Paint(Session.TotalPoints(0).ToString(), Palette.Gold)}" +
-                             $"   ·   {Session.Players[1].Tag} {Palette.Paint(Session.TotalPoints(1).ToString(), Palette.Gold)}");
+            lines.AppendLine($"MATCH POINTS   {Session.Players[0].Tag} {Session.TotalPoints(0)}   ·   {Session.Players[1].Tag} {Session.TotalPoints(1)}");
+            lines.AppendLine();
+            lines.AppendLine(Palette.Paint("CYBER AWARENESS", Palette.Gold) + "  (right security calls + accuracy bonus)");
+            for (int i = 0; i < 2; i++)
+                lines.AppendLine($"{Session.Players[i].Tag}   {Palette.Paint(Session.AwarenessScore(i).ToString(), Palette.Gold)}   ·   {Session.Accuracy(i)}% of decisions right");
+            int aware0 = Session.AwarenessScore(0), aware1 = Session.AwarenessScore(1);
+            if (aware0 != aware1)
+            {
+                var top = Session.Players[aware0 > aware1 ? 0 : 1];
+                lines.AppendLine(Palette.Paint($"MOST CYBER AWARE: {top.Name}", top.Color));
+            }
             var card = new Card
             {
                 Kicker = "GAUNTLET RESULT",
@@ -385,13 +398,13 @@ namespace BreachPoint
             yield return null;
             var who = new List<int>();
             for (int i = 0; i < 2; i++)
-                if (!Session.Players[i].Controls.IsCpu && Leaderboard.Qualifies(Session.TotalPoints(i))) who.Add(i);
+                if (!Session.Players[i].Controls.IsCpu && Leaderboard.Qualifies(Session.AwarenessScore(i))) who.Add(i);
             if (who.Count == 0) yield break;
 
             State = "initials";
             var s = NewScreen("Initials");
             Ui.Panel(s, new Color(0, 0, 0, 0.65f), Vector2.zero, Vector2.one);
-            Ui.Label(s, "NEW HIGH SCORE!", 84, Palette.Gold, TextAnchor.MiddleCenter, new Vector2(0, 0.78f), new Vector2(1, 0.92f), default, default, Fonts.Title);
+            Ui.Label(s, "CYBER AWARE LEADERBOARD!", 72, Palette.Gold, TextAnchor.MiddleCenter, new Vector2(0, 0.78f), new Vector2(1, 0.92f), default, default, Fonts.Title);
             Ui.Label(s, "Up / down: change letter   ·   A / ✕: next   ·   B / ○: back", 30, Palette.Text, TextAnchor.MiddleCenter, new Vector2(0, 0.71f), new Vector2(1, 0.77f));
 
             int n = who.Count;
@@ -408,7 +421,7 @@ namespace BreachPoint
                 float x = n == 1 ? 0.5f : (k == 0 ? 0.3f : 0.7f);
                 var box = Ui.Box(s, new Vector2(x, 0.42f), new Vector2(640, 420), p.Color, "Entry" + k);
                 Ui.Label(box.transform, $"{p.Name} TEAM", 44, p.Color, TextAnchor.MiddleCenter, new Vector2(0, 0.8f), new Vector2(1, 0.95f), default, default, Fonts.Title);
-                Ui.Label(box.transform, $"{Session.TotalPoints(who[k])} pts", 36, Palette.Gold, TextAnchor.MiddleCenter, new Vector2(0, 0.66f), new Vector2(1, 0.8f));
+                Ui.Label(box.transform, $"{Session.AwarenessScore(who[k])} awareness  ·  {Session.Accuracy(who[k])}% right", 32, Palette.Gold, TextAnchor.MiddleCenter, new Vector2(0, 0.66f), new Vector2(1, 0.8f));
                 slots[k] = new Text[3];
                 for (int j = 0; j < 3; j++)
                     slots[k][j] = Ui.Label(box.transform, "", 110, Color.white, TextAnchor.MiddleCenter, new Vector2(0.2f + j * 0.2f, 0.25f), new Vector2(0.4f + j * 0.2f, 0.62f), default, default, Fonts.Mono);
@@ -441,7 +454,7 @@ namespace BreachPoint
                         {
                             done[k] = true;
                             var p = Session.Players[who[k]];
-                            int rank = Leaderboard.Add(new string(letters[k]), p.Team, Session.TotalPoints(who[k]));
+                            int rank = Leaderboard.Add(new string(letters[k]), p.Team, Session.AwarenessScore(who[k]), Session.Accuracy(who[k]));
                             status[k].text = Palette.Paint($"✔ SAVED · RANK #{rank}", Palette.Good);
                             Haptics.Pulse(c, 0.3f, 0.6f, 0.25f);
                         }
@@ -462,7 +475,7 @@ namespace BreachPoint
             }
             // Timeout: save whatever was entered.
             for (int k = 0; k < n; k++)
-                if (!done[k]) Leaderboard.Add(new string(letters[k]), Session.Players[who[k]].Team, Session.TotalPoints(who[k]));
+                if (!done[k]) Leaderboard.Add(new string(letters[k]), Session.Players[who[k]].Team, Session.AwarenessScore(who[k]), Session.Accuracy(who[k]));
             yield return new WaitForSecondsRealtime(1.5f);
             ClearScreen();
         }

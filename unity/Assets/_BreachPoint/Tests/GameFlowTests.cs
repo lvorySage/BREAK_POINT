@@ -172,6 +172,8 @@ namespace BreachPoint.Tests
             yield return new WaitForSeconds(0.5f);
             yield return Press(_p1, GamepadButton.West); // Red (phisher) drops bait
             Assert.AreEqual(1, race.LuresDropped[0]);
+            yield return Press(_p2, GamepadButton.West); // Blue (target) reports it: a right security call
+            Assert.AreEqual(1, race.Reports[1], "Blue reported the bait");
             Stick(_p1, new Vector2(-1f, 0.6f));
             yield return new WaitForSeconds(0.9f);
             Screenshot.Capture("08f-race-play");
@@ -188,6 +190,7 @@ namespace BreachPoint.Tests
 
             yield return WaitFor(() => _flow.State == "final", 5, "final");
             Assert.AreEqual(3, _flow.Session.Results.Count, "all three mini-games recorded");
+            Assert.Greater(_flow.Session.AwarenessScore(1), 0, "reporting bait counts as cyber awareness");
             yield return new WaitForSeconds(0.9f);
             Screenshot.Capture("09-final");
             yield return Press(_p1, GamepadButton.South);
@@ -207,7 +210,7 @@ namespace BreachPoint.Tests
             yield return WaitFor(() => _flow.State == "title", 6, "back to title");
             yield return new WaitForSeconds(0.5f);
             Screenshot.Capture("11-title-leaderboard");
-            Assert.Greater(Leaderboard.Load().Count, 0, "score saved to the leaderboard");
+            Assert.Greater(Leaderboard.Load().Count, 0, "awareness score saved to the leaderboard");
         }
 
         [UnityTest]
@@ -325,6 +328,18 @@ namespace BreachPoint.Tests
             yield return new WaitForSeconds(0.3f);
             Screenshot.Capture("00-menu");
             Assert.AreEqual(0, _flow.MenuSelection, "PLAY is selected first");
+
+            // Quit needs two presses: arm it, then move away to cancel.
+            yield return Press(_p1, GamepadButton.DpadUp);
+            Assert.AreEqual(5, _flow.MenuSelection, "QUIT is the last row");
+            yield return Press(_p1, GamepadButton.South);
+            Assert.IsTrue(_flow.QuitArmed, "first press only asks to confirm");
+            Assert.AreEqual("title", _flow.State);
+            yield return null;
+            Screenshot.Capture("00a-quit-confirm");
+            yield return Press(_p1, GamepadButton.DpadDown);
+            Assert.IsFalse(_flow.QuitArmed, "moving away cancels");
+            Assert.AreEqual(0, _flow.MenuSelection);
 
             // Options: change CPU difficulty with right, then back.
             for (int i = 0; i < 3; i++) yield return Press(_p1, GamepadButton.DpadDown);

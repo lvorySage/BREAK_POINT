@@ -7,8 +7,8 @@ using UnityEngine;
 namespace BreachPoint
 {
     /// <summary>
-    /// Booth leaderboard, stored as JSON on this machine (survives restarts).
-    /// Score = leaderboard points across the gauntlet (data stolen + 5 per block).
+    /// Booth leaderboard, "most cyber-aware player", stored as JSON on this machine (survives restarts).
+    /// Score = Session.AwarenessScore (good security decisions + accuracy bonus).
     /// </summary>
     public static class Leaderboard
     {
@@ -20,6 +20,7 @@ namespace BreachPoint
             public string Initials;
             public string Team;
             public int Score;
+            public int Accuracy;   // % of security decisions that were right
             public string Date;
         }
 
@@ -31,7 +32,7 @@ namespace BreachPoint
 
         /// <summary>Tests point this at a temp file.</summary>
         public static string PathOverride;
-        static string FilePath => PathOverride ?? Path.Combine(Application.persistentDataPath, "breachpoint_leaderboard.json");
+        static string FilePath => PathOverride ?? Path.Combine(Application.persistentDataPath, "breachpoint_awareness.json");
 
         public static List<Entry> Load()
         {
@@ -70,7 +71,7 @@ namespace BreachPoint
         }
 
         /// <summary>Adds an entry; returns its 1-based rank (0 if it didn't make the board).</summary>
-        public static int Add(string initials, Team team, int score)
+        public static int Add(string initials, Team team, int score, int accuracy = 0)
         {
             var list = Load();
             var entry = new Entry
@@ -78,6 +79,7 @@ namespace BreachPoint
                 Initials = initials,
                 Team = team == Team.Red ? "RED" : "BLUE",
                 Score = score,
+                Accuracy = accuracy,
                 Date = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
             };
             list.Add(entry);

@@ -28,7 +28,8 @@ For the best view, maximise the Game view (**Shift + Space** over it) at 16:9.
    - **How to Play**: rules, controls and the lesson of each game on one screen.
    - **Options** (saved on this Mac): sound, rumble, match length (45 / 60 / 90 s per half), CPU difficulty (easy / normal / hard).
    - **Controller Test**: every connected pad with live buttons and sticks; **A / ✕** rumbles; hold **B / ○** to leave.
-   - The top-10 leaderboard is on the right.
+   - **Quit**: press **A / ✕** twice (the first press only asks), so visitors can't close it by accident.
+   - The **Most Cyber Aware** top-10 is on the right (see below).
    Whoever selects Play is Player 1 (Red).
 2. **Join:** Player 2 presses **A / ✕**. No second player? Press **Y / △** (keyboard **Tab**) for a CPU opponent.
 3. Each game has 2 halves; Red and Blue swap roles at half-time. Left alone for 2 minutes, menus go back to the title.
@@ -53,8 +54,16 @@ The winner is whoever stole more data while attacking.
 
 **Pause menu:** Resume · Restart this game · Sound on/off · Quit to title.
 
-**Leaderboard:** top scores show on the title screen (saved on this computer). Points = data stolen + 5 per block.
-After a match, players enter 3-letter initials (stick up/down, A next, B back).
+**Leaderboard: Most Cyber Aware.** Winning the match and being cyber aware are separate. The board ranks each player's
+**awareness score**: points for every right security call, plus a bonus equal to their accuracy (% of calls that were right).
+
+| Game | Right calls (awareness points) | Wrong calls |
+|---|---|---|
+| Firewall Arena | matching defense blocks an attack (10) | wrong defense |
+| Data Heist Ball | encryption or DLP save (15), data returned to the vault (10) | data stolen while defending |
+| Phish Race | real link taken (10 / 15 / 20 by lap), bait reported (10) | phished (fake link or bait) |
+
+After the gauntlet, qualifying players enter 3-letter initials (stick up/down, A next, B back).
 Clear it before the event with **Breach Point → Reset Leaderboard**.
 
 
@@ -68,6 +77,8 @@ Each exfil steals 20%. Roles swap at half-time; the winner stole more data. Poin
 ### Phish Race (mini-game 3)
 
 Both ships race 3 laps. On each straight the track **forks** into two lanes, each painted with a link or sender.
+Links get harder every lap: lap 1 obvious fakes (`hr@omanlng.co`, Gmail senders), lap 2 look-alikes (`0manlng.com`,
+`omanlng.com.verify-mail.co`), lap 3 expert tricks (`omanlng.com@secure-hr.net`, `omanlng.corn`, `vpn-omanlng.com`).
 One is real (really `omanlng.com`) and gives a speed boost; the other is a look-alike (`0manlng.com`, `omanlng-login.net`,
 `it.helpdesk@gmail.com`…) and the ship is **PHISHED** and stalls. Links change after every pass, and the clue shows on screen.
 Each heat one player is the **PHISHER** (**X / □** drops bait behind them: +10 if the target hits it) and the other is the **TARGET**
@@ -92,7 +103,7 @@ The leaderboard and options are shared between the app and the editor's play mod
 
 ## Automated tests
 
-**Window → General → Test Runner → PlayMode → Run All** (44 tests: the rules of each mini-game, leaderboard, pause menu, main menu, and a full two-gamepad playthrough of the gauntlet).
+**Window → General → Test Runner → PlayMode → Run All** (48 tests: the rules of each mini-game, leaderboard, pause menu, main menu, and a full two-gamepad playthrough of the gauntlet).
 From a terminal, with the editor closed:
 
 ```bash

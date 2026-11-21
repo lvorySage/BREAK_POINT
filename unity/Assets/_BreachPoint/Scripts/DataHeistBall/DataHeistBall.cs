@@ -40,6 +40,8 @@ namespace BreachPoint
         public readonly int[] EncryptedSaves = new int[2];  // exfils made useless by encryption
         public readonly int[] LockSaves = new int[2];       // exfils stopped by the DLP lock
         public readonly int[] Kicks = new int[2];
+        public readonly int[] DataLost = new int[2];        // unencrypted exfils conceded while defending
+        public const int AwareRecoverPoints = 10, AwareSavePoints = 15;
 
         // ---- current half ----
         public int Half { get; private set; }
@@ -412,6 +414,7 @@ namespace BreachPoint
                 float gained = Mathf.Min(ExfilValue, 100f - StolenThisHalf);
                 StolenThisHalf += gained;
                 StolenAsAttacker[AttackerIndex] += gained;
+                DataLost[DefenderIndex]++;
                 Popup.Show(at, $"-{gained:0}% DATA EXFILTRATED", Palette.Bad, 0.12f);
                 Sfx.Play("hit");
                 Haptics.Pulse(_s.Players[DefenderIndex].Controls, 0.8f, 1f, 0.35f);
@@ -539,6 +542,13 @@ namespace BreachPoint
             }
             if (Mathf.Abs(r.Scores[0] - r.Scores[1]) > 0.01f) r.Winner = r.Scores[0] > r.Scores[1] ? 0 : 1;
             else if (r.Points[0] != r.Points[1]) r.Winner = r.Points[0] > r.Points[1] ? 0 : 1;
+
+            for (int i = 0; i < 2; i++)
+            {
+                r.Right[i] = Recoveries[i] + EncryptedSaves[i] + LockSaves[i];
+                r.Wrong[i] = DataLost[i];
+                r.Aware[i] = AwareRecoverPoints * Recoveries[i] + AwareSavePoints * (EncryptedSaves[i] + LockSaves[i]);
+            }
 
             int enc = EncryptedSaves[0] + EncryptedSaves[1], dlp = LockSaves[0] + LockSaves[1];
             r.Lesson = enc >= dlp && enc > 0

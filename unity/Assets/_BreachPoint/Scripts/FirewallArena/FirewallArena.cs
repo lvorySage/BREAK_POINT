@@ -570,6 +570,9 @@ namespace BreachPoint
             AutoSeconds = 7f,
         };
 
+        /// <summary>Awareness points per correct defense.</summary>
+        public const int AwareBlockPoints = 10;
+
         public MiniGameResult ComputeResult()
         {
             var r = new MiniGameResult { Game = Title, ScoreLabel = "data stolen %" };
@@ -578,6 +581,12 @@ namespace BreachPoint
             for (int i = 0; i < 2; i++) r.Points[i] = Mathf.RoundToInt(StolenAsAttacker[i]) + BlockPoints * Blocks[i];
             if (Mathf.Abs(r.Scores[0] - r.Scores[1]) > 0.01f) r.Winner = r.Scores[0] > r.Scores[1] ? 0 : 1;
             else if (Blocks[0] != Blocks[1]) r.Winner = Blocks[0] > Blocks[1] ? 0 : 1;
+            for (int i = 0; i < 2; i++)
+            {
+                r.Right[i] = Blocks[i];
+                r.Wrong[i] = WrongDefenses[i];
+                r.Aware[i] = AwareBlockPoints * Blocks[i];
+            }
 
             // Lesson: the attack type that got through most often (or the most-used one).
             int worst = 0;

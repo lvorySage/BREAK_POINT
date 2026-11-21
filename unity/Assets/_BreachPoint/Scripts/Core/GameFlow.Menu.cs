@@ -11,7 +11,7 @@ namespace BreachPoint
     /// <summary>Main menu and its sub-screens: Play, Quick Play, How to Play, Options, Controller Test.</summary>
     public sealed partial class GameFlow
     {
-        static readonly string[] MainItems = { "PLAY", "QUICK PLAY", "HOW TO PLAY", "OPTIONS", "CONTROLLER TEST" };
+        static readonly string[] MainItems = { "PLAY", "QUICK PLAY", "HOW TO PLAY", "OPTIONS", "CONTROLLER TEST", "QUIT" };
         static readonly string[] MainDescs =
         {
             "Red vs Blue · all 3 games · best of 3",
@@ -19,7 +19,21 @@ namespace BreachPoint
             "Rules, controls and the lesson in each game",
             "Sound, rumble, match length, CPU difficulty",
             "Check every controller's buttons and rumble",
+            "Close the game",
         };
+
+        /// <summary>Quit asks for a second press so a visitor can't close the booth game by accident.</summary>
+        bool _quitArmed;
+        public bool QuitArmed => _quitArmed;
+
+        static void QuitGame()
+        {
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
+        }
 
         /// <summary>Selected main-menu row (tests and attract mode read it).</summary>
         public int MenuSelection { get; private set; }
@@ -170,8 +184,12 @@ namespace BreachPoint
                     new Vector2(0, 0.75f), new Vector2(1, 0.9f), default, default, Fonts.Title);
                 Ui.Label(s, "Red vs Blue · three cyber battles · roles swap every round", 30, Palette.Text, TextAnchor.MiddleCenter, new Vector2(0, 0.7f), new Vector2(1, 0.75f));
 
-                var box = Ui.Box(s, new Vector2(0.29f, 0.385f), new Vector2(760, 600), Palette.Gold, "Menu");
-                var menu = new MenuList(box.transform, MainItems.Length, i => MainItems[i], i => MainDescs[i], top: -34f, rowH: 110f);
+                _quitArmed = false;
+                var box = Ui.Box(s, new Vector2(0.29f, 0.385f), new Vector2(760, 640), Palette.Gold, "Menu");
+                MenuList menu = null;
+                menu = new MenuList(box.transform, MainItems.Length,
+                    i => i == MainItems.Length - 1 && _quitArmed ? "QUIT?" : MainItems[i],
+                    i => i == MainItems.Length - 1 && _quitArmed ? "Press A / ✕ again to close the game" : MainDescs[i], top: -22f, rowH: 102f);
                 menu.Index = Mathf.Clamp(MenuSelection, 0, MainItems.Length - 1);
                 menu.Refresh();
                 BuildLeaderboardPanel(s, new Vector2(0.71f, 0.385f));
@@ -182,9 +200,18 @@ namespace BreachPoint
                 PlayerControls by;
                 while (true)
                 {
+                    if (_quitArmed && menu.Index != MainItems.Length - 1) { _quitArmed = false; menu.Refresh(); }
                     MenuSelection = menu.Index;
                     status.text = ControllerStatus();
                     chosen = PollMenu(menu, out by);
+                    if (chosen == MainItems.Length - 1)
+                    {
+                        if (_quitArmed) { QuitGame(); yield break; }
+                        _quitArmed = true;
+                        menu.Refresh();
+                        chosen = -2;
+                    }
+                    else if (chosen == -1 && _quitArmed) { _quitArmed = false; menu.Refresh(); }
                     if (chosen >= 0) break;
                     yield return null;
                 }
@@ -257,7 +284,7 @@ namespace BreachPoint
                 "Both: drive into the data, A to kick, RT to boost.\n\n" +
                 Palette.Paint("Lesson: encryption and DLP stop data theft.", Palette.Gold),
 
-                "Race 3 laps. At each fork, read the links painted on the lanes.\n\n" +
+                "Race 3 laps. At each fork, read the links painted on the lanes. They get trickier every lap.\n\n" +
                 $"{Palette.Paint("Real omanlng.com", Palette.Good)} = boost\n{Palette.Paint("Look-alike", Palette.Bad)} = PHISHED, you stall\n\n" +
                 $"{Palette.Paint("PHISHER", Palette.Red)}  X drops bait\n{Palette.Paint("TARGET", Palette.Blue)}  X reports bait\n\n" +
                 Palette.Paint("Lesson: check the real domain before you click.", Palette.Gold),

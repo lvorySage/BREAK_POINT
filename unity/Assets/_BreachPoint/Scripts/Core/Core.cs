@@ -50,8 +50,15 @@ namespace BreachPoint
         public int Winner = -1;          // player index, -1 = draw
         public float[] Scores = new float[2];
         public string ScoreLabel;        // e.g. "DATA STOLEN"
-        public int[] Points = new int[2]; // leaderboard points earned in this mini-game
+        public int[] Points = new int[2]; // match points earned in this mini-game (decide who wins the session)
         public string Lesson;
+
+        // ---- cyber awareness (the leaderboard) ----
+        /// <summary>Awareness points: earned only by good security decisions (right defense, encrypting, real links, reporting).</summary>
+        public int[] Aware = new int[2];
+        /// <summary>Security decisions this player got right / wrong (accuracy = right / (right + wrong)).</summary>
+        public int[] Right = new int[2];
+        public int[] Wrong = new int[2];
     }
 
     /// <summary>One booth session: two players through the gauntlet.</summary>
@@ -77,6 +84,25 @@ namespace BreachPoint
                 int p0 = TotalPoints(0), p1 = TotalPoints(1);
                 return p0 == p1 ? -1 : p0 > p1 ? 0 : 1;
             }
+        }
+
+        /// <summary>Right security decisions as a percentage of all decisions (0 if none were made).</summary>
+        public int Accuracy(int player)
+        {
+            int right = 0, wrong = 0;
+            foreach (var r in Results) { right += r.Right[player]; wrong += r.Wrong[player]; }
+            return right + wrong == 0 ? 0 : Mathf.RoundToInt(100f * right / (right + wrong));
+        }
+
+        /// <summary>
+        /// The leaderboard score: "most cyber-aware player". Awareness points from every game,
+        /// plus a bonus equal to the accuracy percentage (so careful players beat button-mashers).
+        /// </summary>
+        public int AwarenessScore(int player)
+        {
+            int sum = 0;
+            foreach (var r in Results) sum += r.Aware[player];
+            return sum > 0 ? sum + Accuracy(player) : 0;
         }
 
         public int TotalPoints(int player)
