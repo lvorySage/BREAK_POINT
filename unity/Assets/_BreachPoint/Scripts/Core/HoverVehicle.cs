@@ -89,10 +89,19 @@ namespace BreachPoint
             }
         }
 
+        /// <summary>Upright rotation that points local +X along <paramref name="dir"/> (XZ plane).</summary>
+        public static Quaternion Yaw(Vector3 dir) => Quaternion.Euler(0f, Mathf.Atan2(-dir.z, dir.x) * Mathf.Rad2Deg, 0f);
+
+        /// <summary>True while the body is the right way up (tests and sanity checks).</summary>
+        public bool Upright => _body != null && Vector3.Dot(_body.up, Vector3.up) > 0.8f;
+
         public void Face(Vector3 dir)
         {
             dir.y = 0;
-            if (dir.sqrMagnitude > 0.001f) _face = dir.normalized;
+            if (dir.sqrMagnitude <= 0.001f) return;
+            _face = dir.normalized;
+            // Standing still (kick-offs, grids, countdowns): turn at once, since the body isn't animated until play starts.
+            if (Velocity.sqrMagnitude < 0.01f && _body != null) _body.rotation = Yaw(_face);
         }
 
         public void Teleport(Vector3 pos)
@@ -146,10 +155,11 @@ namespace BreachPoint
         {
             float t = Time.time + _bobSeed;
             _body.localPosition = new Vector3(0, 0.75f + Mathf.Sin(t * 3.1f) * 0.07f, 0);
-            // Body's long axis is local +X; face it along _face.
-            var yaw = Quaternion.FromToRotation(Vector3.right, _face);
+            // Body's long axis is local +X; turn it about the vertical axis only, so it can never roll over.
+            // (FromToRotation picks an arbitrary axis for a 180° turn, which flipped ships facing -X upside down.)
+            var yaw = Yaw(_face);
             var local = Quaternion.Inverse(transform.rotation) * Velocity;
-            var tilt = Quaternion.Euler(local.z * 1.6f, 0f, -local.x * 1.6f);
+            var tilt = Quaternion.Euler(Mathf.Clamp(local.z * 1.6f, -20f, 20f), 0f, Mathf.Clamp(-local.x * 1.6f, -20f, 20f));
             _body.rotation = Quaternion.Slerp(_body.rotation, yaw * tilt, 1f - Mathf.Exp(-12f * dt));
         }
     }

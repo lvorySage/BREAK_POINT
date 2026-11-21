@@ -89,6 +89,7 @@ namespace BreachPoint
             Instance = this;
             Application.targetFrameRate = 60;
             Settings.Load();
+            if (!Application.isEditor) Cursor.visible = false; // booth app: controllers only
             Cam = Stage.CreateCamera();
             Stage.Lighting();
             Stage.PostFx();

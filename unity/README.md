@@ -74,9 +74,25 @@ Each heat one player is the **PHISHER** (**X / □** drops bait behind them: +10
 (**X / □** reports bait within 10 m: +5). **A / ✕** or **RT / R1** boosts. Points: 1st over the line +20, real link +5.
 Roles swap for heat 2; the winner has more points.
 
+## The booth app (no editor needed)
+
+**Build it:** menu **Breach Point → Build Mac App** (about a minute). It writes `unity/Builds/BreachPoint.app`
+(Apple silicon, fullscreen, mouse cursor hidden). `Builds/` is not in git; rebuild after pulling changes.
+
+**Run it:** double-click `unity/Builds/BreachPoint.app` in Finder. The first time, macOS may say it can't verify the app:
+right-click → **Open** → **Open** (or System Settings → Privacy & Security → **Open Anyway**). After that a double-click works.
+Connect the controllers *before* launching (they also work if plugged in later). **Cmd + Q** quits.
+For a window instead of fullscreen (testing), run from Terminal:
+
+```bash
+open unity/Builds/BreachPoint.app --args -screen-fullscreen 0 -screen-width 1600 -screen-height 900
+```
+
+The leaderboard and options are shared between the app and the editor's play mode (same Mac).
+
 ## Automated tests
 
-**Window → General → Test Runner → PlayMode → Run All** (39 tests: the rules of each mini-game, leaderboard, pause menu, main menu, and a full two-gamepad playthrough of the gauntlet).
+**Window → General → Test Runner → PlayMode → Run All** (44 tests: the rules of each mini-game, leaderboard, pause menu, main menu, and a full two-gamepad playthrough of the gauntlet).
 From a terminal, with the editor closed:
 
 ```bash
