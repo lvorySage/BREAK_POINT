@@ -46,11 +46,15 @@ If a slot is empty, the game keeps its placeholder shapes, so art can be added o
 |---|---|---|
 | `HoverVehicle` | Player ship (installed: Quaternius **Spitfire**). Team liveries: `HoverVehicle_Red.png` / `HoverVehicle_Blue.png`; without them the accent colour is repainted | 3.0 × 1.1 × 2.8 m, nose along +Z |
 | `ServerRack` | The three server racks in the fort | 2 × 3.6 × 2.4 m |
-
 | `ExfilPortal` | Exfil goal dressing (Cyberpunk Kit Turret_Teleporter) | 2.4 × 3.2 × 2.4 m |
 | `VaultTerminal` | Vault goal dressing (Cyberpunk Kit Computer_Large) | 1.6 × 2.6 × 3 m |
 | `DataChip` | The data packet (Cyberpunk Kit Collectible_Board) | 1.7 m cube |
 | `RoofAC`, `RoofAntenna` | Rooftop props | 3 × 2 × 3 m, 1.5 × 8 × 1.5 m |
 
-More slots (track pieces) are added as Phish Race is built.
+| `RaceGantry` | Phish Race start/finish gantry (Racing Kit overheadLights) | 10.5 × 5 × 2 m |
+| `RacePylon` | Cones on the lane-divider noses (Racing Kit pylon) | 0.7 × 1 × 0.7 m |
+| `RaceBanner` | Banner towers at the bends (Racing Kit bannerTowerRed) | 2 × 6 × 2 m |
+| `RaceStand` | Grandstands behind the far straight (Racing Kit grandStandCovered) | 7.5 × 4 × 4 m |
+
+The Phish Race track itself (asphalt, neon kerbs, fork lanes) is generated in code so the link lanes line up exactly with the rules.
 Import rules are applied automatically (`Editor/ArtImport.cs`): normal maps, cubemap sky, no imported cameras or lights.

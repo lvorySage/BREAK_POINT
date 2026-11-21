@@ -25,6 +25,8 @@ namespace BreachPoint
 
         public float HalfSeconds = 60f;
         public bool AiEnabled = true;
+        /// <summary>CPU difficulty: 0 easy, 1 normal, 2 hard (from the main-menu options).</summary>
+        public int CpuLevel = 1;
         /// <summary>Tests drive the simulation with Step() instead of Update().</summary>
         public bool ManualStep;
 
@@ -122,6 +124,8 @@ namespace BreachPoint
             _flow = flow;
             flow.InMatch = true;
             flow.OrbitCamera(false);
+            HalfSeconds = Settings.HalfSeconds;
+            CpuLevel = Settings.Cpu;
             Init(session);
             PlaceCamera(flow.Cam);
             _hud.SetVisible(false);
@@ -514,7 +518,7 @@ namespace BreachPoint
                 {
                     _aiThreat = threat;
                     _aiReactAt = Time.time + Random.Range(0.3f, 0.55f);
-                    _aiPlannedShield = Random.value < 0.82f ? threat.Type : (AttackType)(((int)threat.Type + Random.Range(1, Attacks.Count)) % Attacks.Count);
+                    _aiPlannedShield = Random.value < (CpuLevel == 0 ? 0.62f : CpuLevel == 2 ? 0.94f : 0.82f) ? threat.Type : (AttackType)(((int)threat.Type + Random.Range(1, Attacks.Count)) % Attacks.Count);
                 }
                 if (_aiReactAt > 0 && Time.time >= _aiReactAt)
                 {
@@ -539,7 +543,7 @@ namespace BreachPoint
 
         Card IntroCard() => new Card
         {
-            Kicker = $"MINI-GAME 1 OF {GameFlow.TotalGames}",
+            Kicker = GameFlow.Kicker(this),
             Title = "FIREWALL ARENA",
             Accent = Palette.Gold,
             Body =

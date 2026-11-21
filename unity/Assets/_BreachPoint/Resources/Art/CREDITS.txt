@@ -5,3 +5,5 @@ Quaternius Ultimate Spaceships (quaternius.com, CC0): Spitfire -> Models/HoverVe
   Spitfire_Red/Blue textures -> Models/HoverVehicle_Red.png / HoverVehicle_Blue.png
 Quaternius Cyberpunk Game Kit (quaternius.com, CC0): Turret_Teleporter -> ExfilPortal, Computer_Large -> VaultTerminal,
   Collectible_Board -> DataChip, AC -> RoofAC, Antenna_1 -> RoofAntenna
+Kenney Racing Kit (kenney.nl, CC0): overheadLights -> RaceGantry, pylon -> RacePylon, bannerTowerRed -> RaceBanner,
+  grandStandCovered -> RaceStand

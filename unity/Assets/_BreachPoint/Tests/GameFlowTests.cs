@@ -41,7 +41,7 @@ namespace BreachPoint.Tests
         {
             if (_flow != null) UnityEngine.Object.Destroy(_flow.gameObject);
             // Remove only what the game creates at the scene root.
-            string[] ours = { "Main Camera", "Moonlight", "PostFX", "UI", "Overlay", "FirewallHUD", "FirewallArena", "Popup" };
+            string[] ours = { "Main Camera", "Moonlight", "PostFX", "UI", "Overlay", "FirewallHUD", "FirewallArena", "DataHeistHUD", "DataHeistBall", "PhishRaceHUD", "PhishRace", "Popup" };
             foreach (var go in Resources.FindObjectsOfTypeAll<GameObject>())
                 if (go != null && go.scene.IsValid() && go.transform.parent == null && Array.IndexOf(ours, go.name) >= 0) UnityEngine.Object.Destroy(go);
             InputSystem.RemoveDevice(_p1);
@@ -158,8 +158,36 @@ namespace BreachPoint.Tests
             yield return Press(_p1, GamepadButton.South);
             yield return Press(_p2, GamepadButton.South);
 
+            // ---- Mini-game 3: Phish Race ----
+            yield return WaitFor(() => _flow.State == "game:PHISH RACE" && _flow.ScreenName == "Card", 6, "phish race intro");
+            yield return new WaitForSeconds(0.9f);
+            Screenshot.Capture("08e-race-intro");
+            yield return Press(_p1, GamepadButton.South);
+            yield return Press(_p2, GamepadButton.South);
+            var race = UnityEngine.Object.FindAnyObjectByType<PhishRace>();
+            Assert.IsNotNull(race);
+            yield return WaitFor(() => race.Playing, 6, "race heat 1");
+            Stick(_p1, new Vector2(0f, 1f));          // both launch off the grid (north, along the right-hand bend)
+            Stick(_p2, new Vector2(-0.3f, 1f));
+            yield return new WaitForSeconds(0.5f);
+            yield return Press(_p1, GamepadButton.West); // Red (phisher) drops bait
+            Assert.AreEqual(1, race.LuresDropped[0]);
+            Stick(_p1, new Vector2(-1f, 0.6f));
+            yield return new WaitForSeconds(0.9f);
+            Screenshot.Capture("08f-race-play");
+            Stick(_p1, Vector2.zero);
+            Stick(_p2, Vector2.zero);
+            yield return WaitFor(() => _flow.ScreenName == "Card", 10, "race heat swap");
+            yield return WaitFor(() => race.Playing && race.Half == 1, 12, "race heat 2");
+            Assert.AreEqual(1, race.AttackerIndex);
+            yield return WaitFor(() => _flow.ScreenName == "Card" && !race.Playing && race.Half == 1, 10, "race result");
+            yield return new WaitForSeconds(0.9f);
+            Screenshot.Capture("08g-race-result");
+            yield return Press(_p1, GamepadButton.South);
+            yield return Press(_p2, GamepadButton.South);
+
             yield return WaitFor(() => _flow.State == "final", 5, "final");
-            Assert.AreEqual(2, _flow.Session.Results.Count, "both mini-games recorded");
+            Assert.AreEqual(3, _flow.Session.Results.Count, "all three mini-games recorded");
             yield return new WaitForSeconds(0.9f);
             Screenshot.Capture("09-final");
             yield return Press(_p1, GamepadButton.South);
@@ -231,6 +259,121 @@ namespace BreachPoint.Tests
             Assert.IsFalse(_flow.Paused);
             Assert.AreEqual(1f, Time.timeScale);
             Assert.IsTrue(arena == null, "arena destroyed");
+        }
+    }
+
+    public class MainMenuTests
+    {
+        Gamepad _p1;
+        GameFlow _flow;
+        int _length, _cpu;
+        bool _sound, _rumble;
+
+        [SetUp]
+        public void SetUp()
+        {
+            InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+            InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+            _p1 = InputSystem.AddDevice<Gamepad>("MenuPad");
+            GameFlow.HalfSecondsOverride = 4f;
+            GameFlow.IdleResetSeconds = 9999f;
+            Leaderboard.PathOverride = Path.Combine(Application.temporaryCachePath, "bp_test_leaderboard.json");
+            Settings.Load();
+            _length = Settings.Length; _cpu = Settings.Cpu; _sound = Settings.Sound; _rumble = Settings.Rumble;
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (_flow != null) UnityEngine.Object.Destroy(_flow.gameObject);
+            string[] ours = { "Main Camera", "Moonlight", "PostFX", "UI", "Overlay", "PhishRaceHUD", "PhishRace", "DataHeistHUD", "DataHeistBall", "FirewallHUD", "FirewallArena", "Popup" };
+            foreach (var go in Resources.FindObjectsOfTypeAll<GameObject>())
+                if (go != null && go.scene.IsValid() && go.transform.parent == null && Array.IndexOf(ours, go.name) >= 0) UnityEngine.Object.Destroy(go);
+            InputSystem.RemoveDevice(_p1);
+            // Put the visitor-facing options back exactly as they were.
+            Settings.Length = _length; Settings.Cpu = _cpu; Settings.Sound = _sound; Settings.Rumble = _rumble;
+            Settings.Save();
+            GameFlow.HalfSecondsOverride = -1f;
+            GameFlow.IdleResetSeconds = 120f;
+            Leaderboard.PathOverride = null;
+            Time.timeScale = 1f;
+        }
+
+        static IEnumerator Press(Gamepad pad, GamepadButton button)
+        {
+            InputSystem.QueueStateEvent(pad, new GamepadState().WithButton(button));
+            yield return null;
+            InputSystem.QueueStateEvent(pad, new GamepadState());
+            yield return null;
+        }
+
+        IEnumerator WaitFor(Func<bool> cond, float timeout, string what)
+        {
+            float end = Time.realtimeSinceStartup + timeout;
+            while (!cond())
+            {
+                if (Time.realtimeSinceStartup > end) Assert.Fail($"Timed out waiting for {what} (state={_flow.State}, screen={_flow.ScreenName})");
+                yield return null;
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator Menu_OptionsHowToAndQuickPlay()
+        {
+            _flow = new GameObject("BreachPoint").AddComponent<GameFlow>();
+            yield return WaitFor(() => _flow.State == "title", 5, "title");
+            yield return new WaitForSeconds(0.3f);
+            Screenshot.Capture("00-menu");
+            Assert.AreEqual(0, _flow.MenuSelection, "PLAY is selected first");
+
+            // Options: change CPU difficulty with right, then back.
+            for (int i = 0; i < 3; i++) yield return Press(_p1, GamepadButton.DpadDown);
+            Assert.AreEqual(3, _flow.MenuSelection);
+            yield return Press(_p1, GamepadButton.South);
+            yield return WaitFor(() => _flow.State == "menu:options", 3, "options");
+            int cpu = Settings.Cpu;
+            for (int i = 0; i < 3; i++) yield return Press(_p1, GamepadButton.DpadDown);
+            yield return Press(_p1, GamepadButton.DpadRight);
+            Assert.AreEqual((cpu + 1) % 3, Settings.Cpu, "CPU difficulty cycles");
+            yield return new WaitForSeconds(0.2f);
+            Screenshot.Capture("00b-options");
+            yield return Press(_p1, GamepadButton.East);
+            yield return WaitFor(() => _flow.State == "title", 3, "back to menu");
+            Assert.AreEqual(3, _flow.MenuSelection, "menu remembers the row");
+
+            // How to play.
+            yield return Press(_p1, GamepadButton.DpadUp);
+            yield return Press(_p1, GamepadButton.South);
+            yield return WaitFor(() => _flow.State == "menu:howto", 3, "how to play");
+            yield return new WaitForSeconds(0.4f);
+            Screenshot.Capture("00c-howto");
+            yield return Press(_p1, GamepadButton.East);
+            yield return WaitFor(() => _flow.State == "title", 3, "back to menu");
+
+            // Controller test.
+            yield return Press(_p1, GamepadButton.DpadDown);
+            yield return Press(_p1, GamepadButton.DpadDown);
+            yield return Press(_p1, GamepadButton.South);
+            yield return WaitFor(() => _flow.State == "menu:controllers", 3, "controller test");
+            InputSystem.QueueStateEvent(_p1, new GamepadState().WithButton(GamepadButton.North).WithButton(GamepadButton.LeftShoulder));
+            yield return new WaitForSeconds(0.3f);
+            Screenshot.Capture("00d-controllers");
+            InputSystem.QueueStateEvent(_p1, new GamepadState().WithButton(GamepadButton.East));
+            yield return new WaitForSeconds(1.3f);
+            InputSystem.QueueStateEvent(_p1, new GamepadState());
+            yield return WaitFor(() => _flow.State == "title", 3, "hold B leaves the controller test");
+
+            // Quick play: Phish Race against the CPU.
+            for (int i = 0; i < 3; i++) yield return Press(_p1, GamepadButton.DpadUp);
+            Assert.AreEqual(1, _flow.MenuSelection);
+            yield return Press(_p1, GamepadButton.South);
+            yield return WaitFor(() => _flow.State == "menu:quick", 3, "quick play");
+            yield return Press(_p1, GamepadButton.DpadDown);
+            yield return Press(_p1, GamepadButton.DpadDown);
+            yield return Press(_p1, GamepadButton.South);
+            yield return WaitFor(() => _flow.State == "join", 3, "join");
+            yield return Press(_p1, GamepadButton.North);   // CPU opponent
+            yield return WaitFor(() => _flow.State == "game:PHISH RACE" && _flow.ScreenName == "Card", 5, "quick play goes straight to Phish Race");
         }
     }
 

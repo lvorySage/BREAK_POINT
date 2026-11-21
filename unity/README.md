@@ -17,14 +17,23 @@ The console-style sequel to the web prototype: local multiplayer with Xbox and P
 3. **Projects → Add → Add project from disk** → choose this `unity/` folder.
    The first open takes a few minutes: Unity downloads the packages and builds `Library/` (which git ignores).
 
-## Play (first test build)
+## Play
 
 Menu **Breach Point → Play Game (Main scene)**, or open `Assets/_BreachPoint/Scenes/Main.unity` and press ▶ Play.
 For the best view, maximise the Game view (**Shift + Space** over it) at 16:9.
 
-1. **Title:** whoever presses **A / ✕** first is Player 1 (Red).
+1. **Main menu** (any controller: stick / D-pad to move, **A / ✕** select, **B / ○** back; keyboard: arrows + Enter, Esc back):
+   - **Play**: the full gauntlet: Firewall Arena → Data Heist Ball → Phish Race, best of 3.
+   - **Quick Play**: one game on its own.
+   - **How to Play**: rules, controls and the lesson of each game on one screen.
+   - **Options** (saved on this Mac): sound, rumble, match length (45 / 60 / 90 s per half), CPU difficulty (easy / normal / hard).
+   - **Controller Test**: every connected pad with live buttons and sticks; **A / ✕** rumbles; hold **B / ○** to leave.
+   - The top-10 leaderboard is on the right.
+   Whoever selects Play is Player 1 (Red).
 2. **Join:** Player 2 presses **A / ✕**. No second player? Press **Y / △** (keyboard **Tab**) for a CPU opponent.
-3. **Firewall Arena:** 2 halves of 60 s; Red and Blue swap attacker/defender at half-time.
+3. Each game has 2 halves; Red and Blue swap roles at half-time. Left alone for 2 minutes, menus go back to the title.
+
+### Firewall Arena (mini-game 1)
 
 | | Gamepad | Keyboard (Red) | Keyboard (Blue) |
 |---|---|---|---|
@@ -48,7 +57,6 @@ The winner is whoever stole more data while attacking.
 After a match, players enter 3-letter initials (stick up/down, A next, B back).
 Clear it before the event with **Breach Point → Reset Leaderboard**.
 
-Art is placeholder (code-built neon shapes); the art pass swaps in models without changing the rules.
 
 ### Data Heist Ball (mini-game 2)
 
@@ -57,9 +65,18 @@ Both: drive into the data to push it, **A / ✕** kick, **RT / R1** boost.
 Defender tools: **X / □ ENCRYPT** (near the data: anything stolen in the next 5 s is useless) and **Y / △ DLP LOCK** (seals the exit for 3 s).
 Each exfil steals 20%. Roles swap at half-time; the winner stole more data. Points: data stolen + 10 per recovery + 5 per save.
 
+### Phish Race (mini-game 3)
+
+Both ships race 3 laps. On each straight the track **forks** into two lanes, each painted with a link or sender.
+One is real (really `omanlng.com`) and gives a speed boost; the other is a look-alike (`0manlng.com`, `omanlng-login.net`,
+`it.helpdesk@gmail.com`…) and the ship is **PHISHED** and stalls. Links change after every pass, and the clue shows on screen.
+Each heat one player is the **PHISHER** (**X / □** drops bait behind them: +10 if the target hits it) and the other is the **TARGET**
+(**X / □** reports bait within 10 m: +5). **A / ✕** or **RT / R1** boosts. Points: 1st over the line +20, real link +5.
+Roles swap for heat 2; the winner has more points.
+
 ## Automated tests
 
-**Window → General → Test Runner → PlayMode → Run All** (28 tests: the rules of each mini-game, leaderboard, pause menu, and a full two-gamepad playthrough of the gauntlet).
+**Window → General → Test Runner → PlayMode → Run All** (39 tests: the rules of each mini-game, leaderboard, pause menu, main menu, and a full two-gamepad playthrough of the gauntlet).
 From a terminal, with the editor closed:
 
 ```bash
@@ -71,7 +88,7 @@ Set `BP_SHOTS=/some/folder` to also save screenshots of each stage.
 
 ## Check the controllers
 
-Menu **Breach Point → Controller Check Scene**, then press ▶ Play.
+Main menu → **Controller Test** (in the game), or menu **Breach Point → Controller Check Scene**, then press ▶ Play.
 
 - Player 1 shows in red and Player 2 in blue. DualSense / DualShock light bars change colour to match.
 - Shows live sticks, triggers and every pressed button. **A / Cross** rumbles the pad.

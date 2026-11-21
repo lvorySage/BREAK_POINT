@@ -10,6 +10,8 @@ namespace BreachPoint
     public sealed class Haptics : MonoBehaviour
     {
         static Haptics _instance;
+        /// <summary>Main-menu option. Light bars still follow team colours when rumble is off.</summary>
+        public static bool Enabled = true;
         readonly Dictionary<Gamepad, float> _until = new Dictionary<Gamepad, float>();
         readonly List<Gamepad> _expired = new List<Gamepad>();
 
@@ -29,7 +31,7 @@ namespace BreachPoint
 
         public static void Pulse(PlayerControls c, float low, float high, float seconds)
         {
-            if (c == null || c.Pad == null || !c.Pad.added) return;
+            if (!Enabled || c == null || c.Pad == null || !c.Pad.added) return;
             c.Pad.SetMotorSpeeds(low, high);
             Instance._until[c.Pad] = Time.unscaledTime + seconds;
         }

@@ -26,6 +26,9 @@ namespace BreachPoint
 
         public float HalfSeconds = 60f;
         public bool AiEnabled = true;
+        /// <summary>CPU difficulty: 0 easy, 1 normal, 2 hard (from the main-menu options).</summary>
+        public int CpuLevel = 1;
+        float CpuScale => CpuLevel == 0 ? 0.72f : CpuLevel == 2 ? 0.97f : CpuSpeed;
         public bool ManualStep;
 
         public string Title => "DATA HEIST BALL";
@@ -111,6 +114,8 @@ namespace BreachPoint
             _flow = flow;
             flow.InMatch = true;
             flow.OrbitCamera(false);
+            HalfSeconds = Settings.HalfSeconds;
+            CpuLevel = Settings.Cpu;
             Init(session);
             FirewallArena.PlaceCamera(flow.Cam);
             _hud.SetVisible(false);
@@ -205,7 +210,7 @@ namespace BreachPoint
                 {
                     var c = _s.Players[i].Controls;
                     var v = _veh[i];
-                    v.Drive(c.Move, c.Boost, dt, Field, c.IsCpu ? CpuSpeed : 1f);
+                    v.Drive(c.Move, c.Boost, dt, Field, c.IsCpu ? CpuScale : 1f);
                     if (v.Velocity.sqrMagnitude > 1f) v.Face(v.Velocity);
                     if (c.ActionDown(0)) TryKick(i);
                 }
@@ -503,7 +508,7 @@ namespace BreachPoint
 
         Card IntroCard() => new Card
         {
-            Kicker = $"MINI-GAME 2 OF {GameFlow.TotalGames}",
+            Kicker = GameFlow.Kicker(this),
             Title = Title,
             Accent = Palette.Gold,
             Body = "The attacker is inside OmanLNG's network and wants to smuggle data out.\n\n" + Legend() +

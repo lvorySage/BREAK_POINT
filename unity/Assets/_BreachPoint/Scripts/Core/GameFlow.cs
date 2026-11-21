@@ -32,20 +32,36 @@ namespace BreachPoint
     /// Booth session state machine: Title (leaderboard) → Join → each mini-game → Final → Initials → Title.
     /// Also owns the global pause menu. Lives on the single object in Main.unity.
     /// </summary>
-    public sealed class GameFlow : MonoBehaviour
+    public sealed partial class GameFlow : MonoBehaviour
     {
         /// <summary>Tests shorten halves etc. through these.</summary>
         public static float HalfSecondsOverride = -1f;
         public static float IdleResetSeconds = 120f;
 
-        /// <summary>The gauntlet. Data Heist Ball and Phish Race are added here as they are built.</summary>
+        /// <summary>The gauntlet, in play order.</summary>
         public static readonly List<Func<IMiniGame>> Games = new List<Func<IMiniGame>>
         {
             () => FirewallArena.Create(),
             () => DataHeistBall.Create(),
+            () => PhishRace.Create(),
         };
-        public static readonly string[] ComingSoon = { "PHISH RACE" };
-        public static int TotalGames => Games.Count + ComingSoon.Length;
+        public static readonly string[] GameNames = { "FIREWALL ARENA", "DATA HEIST BALL", "PHISH RACE" };
+        public static readonly string[] GameBlurbs =
+        {
+            "Shooter · match the defense to the attack",
+            "Sports · encryption and DLP stop data theft",
+            "Racing · spot the fake link, dodge the bait",
+        };
+        public static int TotalGames => Games.Count;
+
+        /// <summary>Intro-card kicker for a mini-game: its place in this session's plan.</summary>
+        public static string Kicker(IMiniGame g)
+        {
+            var f = Instance;
+            if (f == null || f._plan == null) return "MINI-GAME";
+            if (f._plan.Count == 1) return "QUICK PLAY";
+            return $"MINI-GAME {f._planPos + 1} OF {f._plan.Count}";
+        }
 
         public static GameFlow Instance { get; private set; }
         public Session Session { get; private set; }
@@ -61,7 +77,8 @@ namespace BreachPoint
         Canvas _ui, _overlay;
         RectTransform _screen, _pause;
         IMiniGame _current;
-        int _gameIndex;
+        List<int> _plan;
+        int _planPos;
         bool _orbit;
         float _orbitAngle, _lastInput;
         PlayerControls _starter;
@@ -71,6 +88,7 @@ namespace BreachPoint
         {
             Instance = this;
             Application.targetFrameRate = 60;
+            Settings.Load();
             Cam = Stage.CreateCamera();
             Stage.Lighting();
             Stage.PostFx();
@@ -94,7 +112,7 @@ namespace BreachPoint
             while (true)
             {
                 Session = new Session();
-                yield return Title();
+                yield return MainMenu();
                 yield return Join();
                 yield return Gauntlet(0);
             }
@@ -103,10 +121,11 @@ namespace BreachPoint
         /// <summary>Plays mini-games from <paramref name="from"/>, then the final results and initials.</summary>
         IEnumerator Gauntlet(int from)
         {
-            for (int i = from; i < Games.Count; i++)
+            _plan ??= AllGames();
+            for (int i = from; i < _plan.Count; i++)
             {
-                _gameIndex = i;
-                _current = Games[i]();
+                _planPos = i;
+                _current = Games[_plan[i]]();
                 State = "game:" + _current.Title;
                 yield return _current.Run(this, Session);
                 if (_current.Result != null) Session.Record(_current.Result);
@@ -133,55 +152,29 @@ namespace BreachPoint
 
         public void OrbitCamera(bool on) => _orbit = on;
 
-        IEnumerator Title()
-        {
-            yield return null; // never react to the press that closed the previous screen
-            State = "title";
-            InMatch = false;
-            OrbitCamera(true);
-            var s = NewScreen("Title");
-            Ui.Panel(s, new Color(0, 0, 0, 0.5f), Vector2.zero, Vector2.one);
-            Ui.Label(s, "OmanLNG  ×  Otech SOC  ·  CYBER SECURITY WEEK", 28, Palette.Muted, TextAnchor.MiddleCenter, new Vector2(0, 0.87f), new Vector2(1, 0.92f));
-            Ui.Label(s, $"{Palette.Paint("BREACH", Palette.Red)} {Palette.Paint("POINT", Palette.Blue)}", 140, Color.white, TextAnchor.MiddleCenter,
-                new Vector2(0, 0.7f), new Vector2(1, 0.87f), default, default, Fonts.Title);
-            Ui.Label(s, "Red vs Blue. Three cyber battles. Roles swap every round.", 32, Palette.Text, TextAnchor.MiddleCenter, new Vector2(0, 0.64f), new Vector2(1, 0.69f));
-
-            BuildLeaderboardPanel(s, new Vector2(0.5f, 0.395f));
-
-            var press = Ui.Label(s, "PRESS  A / ✕  TO START", 44, Palette.Gold, TextAnchor.MiddleCenter, new Vector2(0, 0.105f), new Vector2(1, 0.17f));
-            Ui.Label(s, "Keyboard: Space or Enter   ·   Start / Esc pauses at any time", 22, Palette.Muted, TextAnchor.MiddleCenter, new Vector2(0, 0.065f), new Vector2(1, 0.1f));
-            Ui.Label(s, "All scenarios are fictional. Simulation only.", 20, Palette.Muted, TextAnchor.MiddleCenter, new Vector2(0, 0.015f), new Vector2(1, 0.05f));
-
-            while ((_starter = ConfirmingDevice()) == null)
-            {
-                press.color = Palette.A(Palette.Gold, 0.55f + 0.45f * Mathf.Sin(Time.unscaledTime * 4f));
-                yield return null;
-            }
-            Sfx.Play("confirm");
-        }
-
         static void BuildLeaderboardPanel(Transform parent, Vector2 anchor)
         {
-            var box = Ui.Box(parent, anchor, new Vector2(860, 370), Palette.Gold, "Leaderboard");
+            var box = Ui.Box(parent, anchor, new Vector2(760, 600), Palette.Gold, "Leaderboard");
             var t = box.transform;
-            Ui.Label(t, "LEADERBOARD", 34, Palette.Gold, TextAnchor.MiddleCenter, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -58), new Vector2(0, -10), Fonts.Title);
+            Ui.Label(t, "TOP DEFENDERS", 34, Palette.Gold, TextAnchor.MiddleCenter, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -62), new Vector2(0, -12), Fonts.Title);
             var top = Leaderboard.Load();
             if (top.Count == 0)
             {
-                Ui.Label(t, "No scores yet. Be the first!", 30, Palette.Muted, TextAnchor.MiddleCenter, Vector2.zero, Vector2.one, new Vector2(0, -20), new Vector2(0, -60));
+                Ui.Label(t, "No scores yet.\nBe the first!", 34, Palette.Muted, TextAnchor.MiddleCenter, Vector2.zero, Vector2.one, new Vector2(0, -20), new Vector2(0, -60));
                 return;
             }
-            int rows = Mathf.Min(8, top.Count);
+            int rows = Mathf.Min(10, top.Count);
             for (int i = 0; i < rows; i++)
             {
                 var e = top[i];
-                float y = -70 - i * 36;
+                float y = -78 - i * 50;
                 var c = e.Team == "RED" ? Palette.Red : Palette.Blue;
                 var rankColor = i == 0 ? Palette.Gold : Palette.Text;
-                Ui.Label(t, $"{i + 1}.", 28, rankColor, TextAnchor.MiddleRight, new Vector2(0, 1), new Vector2(0, 1), new Vector2(60, y - 34), new Vector2(150, y), Fonts.Mono);
-                Ui.Label(t, e.Initials, 30, rankColor, TextAnchor.MiddleLeft, new Vector2(0, 1), new Vector2(0, 1), new Vector2(180, y - 34), new Vector2(360, y), Fonts.Mono);
-                Ui.Label(t, e.Team, 26, c, TextAnchor.MiddleLeft, new Vector2(0, 1), new Vector2(0, 1), new Vector2(380, y - 34), new Vector2(540, y));
-                Ui.Label(t, $"{e.Score} pts", 28, rankColor, TextAnchor.MiddleRight, new Vector2(0, 1), new Vector2(0, 1), new Vector2(560, y - 34), new Vector2(800, y), Fonts.Mono);
+                if (i % 2 == 0) Ui.Panel(t, new Color(1, 1, 1, 0.035f), new Vector2(0, 1), new Vector2(1, 1), new Vector2(16, y - 46), new Vector2(-16, y), "Row");
+                Ui.Label(t, $"{i + 1}.", 30, rankColor, TextAnchor.MiddleRight, new Vector2(0, 1), new Vector2(0, 1), new Vector2(30, y - 46), new Vector2(110, y), Fonts.Mono);
+                Ui.Label(t, e.Initials, 32, rankColor, TextAnchor.MiddleLeft, new Vector2(0, 1), new Vector2(0, 1), new Vector2(150, y - 46), new Vector2(330, y), Fonts.Mono);
+                Ui.Label(t, e.Team, 26, c, TextAnchor.MiddleLeft, new Vector2(0, 1), new Vector2(0, 1), new Vector2(340, y - 46), new Vector2(480, y));
+                Ui.Label(t, $"{e.Score} pts", 30, rankColor, TextAnchor.MiddleRight, new Vector2(0, 1), new Vector2(0, 1), new Vector2(480, y - 46), new Vector2(720, y), Fonts.Mono);
             }
         }
 
@@ -352,8 +345,6 @@ namespace BreachPoint
             lines.AppendLine();
             lines.AppendLine($"TOTAL POINTS   {Session.Players[0].Tag} {Palette.Paint(Session.TotalPoints(0).ToString(), Palette.Gold)}" +
                              $"   ·   {Session.Players[1].Tag} {Palette.Paint(Session.TotalPoints(1).ToString(), Palette.Gold)}");
-            lines.AppendLine();
-            lines.AppendLine(Palette.Paint("Coming next: " + string.Join(" · ", ComingSoon), Palette.Muted));
             var card = new Card
             {
                 Kicker = "GAUNTLET RESULT",
@@ -540,6 +531,7 @@ namespace BreachPoint
         int NavDelta()
         {
             _navCooldown -= Time.unscaledDeltaTime;
+            if (_navCooldown < -1f) _navCooldown = -1f;
             foreach (var g in Gamepad.all)
             {
                 if (g.dpad.up.wasPressedThisFrame) return -1;
@@ -619,7 +611,7 @@ namespace BreachPoint
             _current = null;
             ClearScreen();
             Haptics.StopAll();
-            StartCoroutine(RestartFrom(_gameIndex));
+            StartCoroutine(RestartFrom(_planPos));
         }
 
         IEnumerator RestartFrom(int index)
