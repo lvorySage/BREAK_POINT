@@ -89,6 +89,20 @@ namespace BreachPoint
             }
         }
 
+        TextMesh _tag;
+
+        /// <summary>Floating role label above the ship ("RED · ATTACKER"); follows the ship but never tilts.</summary>
+        public void SetTag(string text, Color c)
+        {
+            if (_tag == null)
+            {
+                _tag = Shapes.Text3D(transform, "", new Vector3(0, 3.2f, 0), 0.1f, c, true, Fonts.Bold);
+                _tag.gameObject.name = "RoleTag";
+            }
+            _tag.text = text;
+            _tag.color = c;
+        }
+
         /// <summary>Upright rotation that points local +X along <paramref name="dir"/> (XZ plane).</summary>
         public static Quaternion Yaw(Vector3 dir) => Quaternion.Euler(0f, Mathf.Atan2(-dir.z, dir.x) * Mathf.Rad2Deg, 0f);
 

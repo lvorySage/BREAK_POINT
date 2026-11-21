@@ -114,6 +114,7 @@ namespace BreachPoint
             _veh[DefenderIndex].Teleport(new Vector3(9f, 0, 0));
             _veh[DefenderIndex].Face(Vector3.left);
             ApplyRoleVisuals();
+            for (int i = 0; i < 2; i++) _veh[i].SetTag($"{_s.Players[i].Name} · {(i == AttackerIndex ? "ATTACKER" : "DEFENDER")}", _s.Players[i].Color);
             _hud.OnHalfStart();
             foreach (var p in _s.Players) Haptics.LightBar(p.Controls, p.Color);
             _playing = play;
@@ -200,7 +201,7 @@ namespace BreachPoint
             if (cam == null) return;
             cam.transform.position = new Vector3(1.5f, 28f, -26f);
             cam.transform.LookAt(new Vector3(1.5f, 0, 1.4f));
-            cam.fieldOfView = 47f;
+            cam.fieldOfView = Stage.FitFov(47f, cam);
         }
 
         // ================================================================== simulation

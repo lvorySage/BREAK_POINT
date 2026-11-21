@@ -90,6 +90,7 @@ namespace BreachPoint
             Application.targetFrameRate = 60;
             Settings.Load();
             if (!Application.isEditor) Cursor.visible = false; // booth app: controllers only
+            if (!Application.isEditor) UseNativeResolution();
             Cam = Stage.CreateCamera();
             Stage.Lighting();
             Stage.PostFx();
@@ -100,6 +101,21 @@ namespace BreachPoint
         }
 
         void Start() => StartCoroutine(Main());
+
+        /// <summary>
+        /// The Mac player remembers its last window size, so one windowed launch made every later fullscreen launch
+        /// upscale 1280×720. Always go full native (Retina) resolution unless a size was given on the command line.
+        /// </summary>
+        static void UseNativeResolution()
+        {
+            var args = Environment.GetCommandLineArgs();
+            if (Array.Exists(args, a => a == "-screen-width" || a == "-screen-fullscreen")) return;
+            int w = Display.main.systemWidth, h = Display.main.systemHeight;
+            foreach (var r in Screen.resolutions)
+                if (r.width * r.height > w * h) { w = r.width; h = r.height; }
+            Screen.SetResolution(w, h, FullScreenMode.FullScreenWindow);
+            Debug.Log($"[BreachPoint] Fullscreen at {w}x{h}");
+        }
 
         void OnDestroy()
         {

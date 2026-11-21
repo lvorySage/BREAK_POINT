@@ -178,6 +178,7 @@ namespace BreachPoint
                 _prog[i] = _lastS[i] - Perimeter;
             }
             for (int f = 0; f < 2; f++) RandomizeFork(f);
+            for (int i = 0; i < 2; i++) _veh[i].SetTag($"{_s.Players[i].Name} · {(i == AttackerIndex ? "PHISHER" : "TARGET")}", _s.Players[i].Color);
             _hud.OnHalfStart();
             foreach (var p in _s.Players) Haptics.LightBar(p.Controls, p.Color);
             _playing = play;
@@ -258,7 +259,7 @@ namespace BreachPoint
             if (cam == null) return;
             cam.transform.position = new Vector3(0f, 33f, -29f);
             cam.transform.LookAt(new Vector3(0f, 0f, 1.2f));
-            cam.fieldOfView = 47f;
+            cam.fieldOfView = Stage.FitFov(47f, cam);
         }
 
         // ================================================================== simulation

@@ -170,10 +170,10 @@ namespace BreachPoint
                 var tm = _laneText[fork, o];
                 tm.text = real ? pair.Real : pair.Fake;
                 tm.color = Color.white; // identical styling: the only clue is the text itself
-                tm.characterSize = 0.2f;
+                tm.characterSize = 0.1f; // Text3D renders at fontSize 128
                 // Fit long links inside the lane.
                 float chars = tm.text.Length;
-                float width = chars * 0.2f * 64f * 0.1f * 0.52f;
+                float width = chars * 0.1f * 128f * 0.1f * 0.52f;
                 if (width > ForkHalf * 2f + 2f) tm.characterSize *= (ForkHalf * 2f + 2f) / width;
                 _laneFlash[fork, o] = 0.5f;
                 _laneFlashColor[fork, o] = LinkCyan;

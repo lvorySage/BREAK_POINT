@@ -11,7 +11,10 @@ namespace BreachPoint
         GameObject _lockBars;
         Material _exfilGlow;
 
-        static readonly Color DataCyan = new Color(0.3f, 0.95f, 1f);
+        // Neutral colours: the goals and the data must not look like they belong to Red or Blue (roles swap at half-time).
+        static readonly Color DataCyan = new Color(0.92f, 0.96f, 1f);
+        static readonly Color ExfilViolet = new Color(0.72f, 0.3f, 1f);
+        static readonly Color VaultGreen = new Color(0.3f, 1f, 0.6f);
 
         void BuildField()
         {
@@ -73,7 +76,7 @@ namespace BreachPoint
 
         void BuildExfil(Transform root)
         {
-            var red = new Color(1f, 0.15f, 0.25f);
+            var red = ExfilViolet;
             var g = new GameObject("Exfil").transform;
             g.SetParent(root, false);
             g.localPosition = new Vector3(-WallX - GoalDepth / 2f, 0, 0);
@@ -102,7 +105,7 @@ namespace BreachPoint
 
         void BuildVault(Transform root)
         {
-            var blue = Palette.Blue;
+            var blue = VaultGreen;
             var gold = new Color(1f, 0.78f, 0.35f);
             var g = new GameObject("Vault").transform;
             g.SetParent(root, false);
@@ -183,7 +186,7 @@ namespace BreachPoint
             _ballLabel.text = enc ? $"ENCRYPTED {EncryptedLeft:0}s" : "DATA";
             _ballLabel.color = c;
             _lockBars.SetActive(LockLeft > 0f);
-            Mats.SetGlow(_exfilGlow, new Color(1f, 0.15f, 0.25f), 1.8f + 0.6f * Mathf.Sin(Time.time * 4f));
+            Mats.SetGlow(_exfilGlow, ExfilViolet, 1.8f + 0.6f * Mathf.Sin(Time.time * 4f));
         }
     }
 

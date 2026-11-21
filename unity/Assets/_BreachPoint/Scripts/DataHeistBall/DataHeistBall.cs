@@ -89,6 +89,7 @@ namespace BreachPoint
             StolenThisHalf = 0;
             EncryptedLeft = LockLeft = EncryptCooldownLeft = LockCooldownLeft = 0;
             Kickoff(pause: 0f);
+            for (int i = 0; i < 2; i++) _veh[i].SetTag($"{_s.Players[i].Name} · {(i == AttackerIndex ? "ATTACKER" : "DEFENDER")}", _s.Players[i].Color);
             _hud.OnHalfStart();
             foreach (var p in _s.Players) Haptics.LightBar(p.Controls, p.Color);
             _playing = play;
@@ -500,8 +501,8 @@ namespace BreachPoint
         // ================================================================== cards & result
 
         string Legend() =>
-            $"{Palette.Paint("ATTACKER", Palette.Red)}: push the DATA into the {Palette.Paint("EXFIL", Palette.Bad)} portal (left).\n" +
-            $"{Palette.Paint("DEFENDER", Palette.Blue)}: return it to the {Palette.Paint("DATA VAULT", Palette.Blue)} (right), using two tools:\n" +
+            $"{Palette.Paint("ATTACKER", Palette.Red)}: push the DATA into the {Palette.Paint("EXFIL", new Color(0.72f, 0.3f, 1f))} portal (left, violet).\n" +
+            $"{Palette.Paint("DEFENDER", Palette.Blue)}: return it to the {Palette.Paint("DATA VAULT", new Color(0.3f, 1f, 0.6f))} (right, green), using two tools:\n" +
             $"{Palette.Paint("X / □  ENCRYPT", Palette.Gold)}: stolen data is useless for {EncryptSeconds:0} s (get close first)\n" +
             $"{Palette.Paint("Y / △  DLP LOCK", Palette.Good)}: seal the exit for {LockSeconds:0} s\n\n" +
             Palette.Paint("Both: drive into the data to push it  ·  A / ✕ kick  ·  RT / R1 boost  ·  bumping allowed", Palette.Muted);

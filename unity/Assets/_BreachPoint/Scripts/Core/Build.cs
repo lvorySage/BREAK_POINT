@@ -133,8 +133,9 @@ namespace BreachPoint
             go.transform.localPosition = localPos;
             var tm = go.AddComponent<TextMesh>();
             tm.font = font != null ? font : Fonts.Bold;
-            tm.fontSize = 64;
-            tm.characterSize = size;
+            // Twice the glyph resolution at the same world size: crisp text on Retina / 4K screens.
+            tm.fontSize = 128;
+            tm.characterSize = size * 0.5f;
             tm.anchor = TextAnchor.MiddleCenter;
             tm.alignment = TextAlignment.Center;
             tm.richText = true;
@@ -203,7 +204,21 @@ namespace BreachPoint
             var data = cam.GetUniversalAdditionalCameraData();
             data.renderPostProcessing = true;
             data.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
+            data.antialiasingQuality = AntialiasingQuality.High;
+            cam.allowMSAA = true;
             return cam;
+        }
+
+        /// <summary>
+        /// Arenas are framed for 16:9. On narrower screens (a MacBook's 16:10) widen the vertical FOV
+        /// so the same width stays in view instead of cropping the sides.
+        /// </summary>
+        public static float FitFov(float fov169, Camera cam)
+        {
+            float aspect = cam.aspect > 0.1f ? cam.aspect : 16f / 9f;
+            if (aspect >= 16f / 9f) return fov169;
+            float halfH = Mathf.Atan(Mathf.Tan(fov169 * 0.5f * Mathf.Deg2Rad) * (16f / 9f) / aspect);
+            return halfH * 2f * Mathf.Rad2Deg;
         }
 
         public static void Lighting()
