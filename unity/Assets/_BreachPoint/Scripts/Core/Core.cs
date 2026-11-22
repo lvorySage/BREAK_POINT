@@ -39,9 +39,15 @@ namespace BreachPoint
             Controls = controls;
         }
 
+        /// <summary>Name typed on the name screen (empty = none given).</summary>
+        public string PlayerName = "";
+
         public Color Color => Palette.Of(Team);
+        /// <summary>Team name: RED / BLUE.</summary>
         public string Name => Team == Team.Red ? "RED" : "BLUE";
-        public string Tag => Palette.Paint(Name, Color);
+        /// <summary>What players see: their own name, or the team name if they didn't enter one.</summary>
+        public string Display => string.IsNullOrEmpty(PlayerName) ? Name : PlayerName;
+        public string Tag => Palette.Paint(Display, Color);
     }
 
     public sealed class MiniGameResult

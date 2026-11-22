@@ -147,8 +147,9 @@ namespace BreachPoint
         void Header(RectTransform s, string title, string sub)
         {
             Ui.Panel(s, new Color(0.01f, 0.015f, 0.03f, 0.74f), Vector2.zero, Vector2.one);
-            Ui.Label(s, "OmanLNG  ×  Otech SOC  ·  CYBER SECURITY WEEK", 26, Palette.Muted, TextAnchor.MiddleCenter, new Vector2(0, 0.92f), new Vector2(1, 0.97f));
+            Ui.Label(s, "Oman LNG  ×  Otech SOC  ·  CYBER SECURITY WEEK", 26, Palette.Muted, TextAnchor.MiddleCenter, new Vector2(0, 0.92f), new Vector2(1, 0.97f));
             Ui.Label(s, title, 76, Color.white, TextAnchor.MiddleCenter, new Vector2(0, 0.82f), new Vector2(1, 0.92f), default, default, Fonts.Title);
+            Ui.Logo(s, "OmanLNG_Logo", new Vector2(0.06f, 0.87f), 130f);
             if (!string.IsNullOrEmpty(sub))
                 Ui.Label(s, sub, 28, Palette.Text, TextAnchor.MiddleCenter, new Vector2(0, 0.77f), new Vector2(1, 0.82f));
         }
@@ -179,9 +180,10 @@ namespace BreachPoint
                 State = "title";
                 var s = NewScreen("Title");
                 Ui.Panel(s, new Color(0.01f, 0.015f, 0.03f, 0.6f), Vector2.zero, Vector2.one);
-                Ui.Label(s, "OmanLNG  ×  Otech SOC  ·  CYBER SECURITY WEEK", 28, Palette.Muted, TextAnchor.MiddleCenter, new Vector2(0, 0.9f), new Vector2(1, 0.95f));
+                Ui.Label(s, "Oman LNG  ×  Otech SOC  ·  CYBER SECURITY WEEK", 28, Palette.Muted, TextAnchor.MiddleCenter, new Vector2(0, 0.9f), new Vector2(1, 0.95f));
                 Ui.Label(s, $"{Palette.Paint("BREACH", Palette.Red)} {Palette.Paint("POINT", Palette.Blue)}", 130, Color.white, TextAnchor.MiddleCenter,
                     new Vector2(0, 0.75f), new Vector2(1, 0.9f), default, default, Fonts.Title);
+                Ui.Logo(s, "OmanLNG_Logo", new Vector2(0.075f, 0.835f), 190f);
                 Ui.Label(s, "Red vs Blue · three cyber battles · roles swap every round", 30, Palette.Text, TextAnchor.MiddleCenter, new Vector2(0, 0.7f), new Vector2(1, 0.75f));
 
                 _quitArmed = false;
@@ -273,7 +275,7 @@ namespace BreachPoint
             string[] titles = GameNames;
             string[] bodies =
             {
-                $"{Palette.Paint("ATTACKER", Palette.Red)} fires 4 attack types at the OmanLNG servers.\n\n" +
+                $"{Palette.Paint("ATTACKER", Palette.Red)} fires 4 attack types at the Oman LNG servers.\n\n" +
                 $"{Palette.Paint("DEFENDER", Palette.Blue)} picks the matching defense:\n" +
                 "A  Email filter ← Phishing\nB  Antivirus ← Malware\nX  Rate limiter ← DDoS\nY  MFA ← Password attack\n\n" +
                 Palette.Paint("Lesson: each attack needs the right defense.", Palette.Gold),
@@ -284,8 +286,9 @@ namespace BreachPoint
                 "Both: drive into the data, A to kick, RT to boost.\n\n" +
                 Palette.Paint("Lesson: encryption and DLP stop data theft.", Palette.Gold),
 
-                "Race 3 laps. At each fork, read the links painted on the lanes. They get trickier every lap.\n\n" +
-                $"{Palette.Paint("Real omanlng.com", Palette.Good)} = boost\n{Palette.Paint("Look-alike", Palette.Bad)} = PHISHED, you stall\n\n" +
+                "Race 3 laps. At each fork, read the links painted on the lanes. They get trickier every lap.\n" +
+                "Emails float on the bends: real sender = boost.\n\n" +
+                $"{Palette.Paint("Real " + Links.RealDomain, Palette.Good)} = boost\n{Palette.Paint("Look-alike", Palette.Bad)} = PHISHED, you stall\n\n" +
                 $"{Palette.Paint("PHISHER", Palette.Red)}  X drops bait\n{Palette.Paint("TARGET", Palette.Blue)}  X reports bait\n\n" +
                 Palette.Paint("Lesson: check the real domain before you click.", Palette.Gold),
             };

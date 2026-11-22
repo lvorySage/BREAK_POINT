@@ -93,7 +93,7 @@ namespace BreachPoint
             BuildFort();
         }
 
-        /// <summary>Omani-fort style SOC compound around the servers, with the OmanLNG × Otech SOC banner.</summary>
+        /// <summary>Omani-fort style SOC compound around the servers, with the Oman LNG × Otech SOC banner and logos.</summary>
         void BuildFort()
         {
             var root = new GameObject("SOC Fort").transform;
@@ -172,8 +172,13 @@ namespace BreachPoint
             Shapes.Box(banner, "Board", Vector3.zero, new Vector3(11f, 1.9f, 0.15f), Mats.Lit(new Color(0.05f, 0.05f, 0.07f), 0.5f), false);
             Shapes.Box(banner, "Edge", new Vector3(0, 0.97f, 0), new Vector3(11f, 0.07f, 0.2f), Mats.Glow(gold, 2f), false);
             Shapes.Box(banner, "Edge", new Vector3(0, -0.97f, 0), new Vector3(11f, 0.07f, 0.2f), Mats.Glow(gold, 2f), false);
-            Shapes.Text3D(banner, "OmanLNG  ×  Otech SOC", new Vector3(0, 0.22f, -0.12f), 0.12f, gold, false, Fonts.Title);
-            Shapes.Text3D(banner, "SECURITY OPERATIONS CENTRE", new Vector3(0, -0.55f, -0.12f), 0.055f, Palette.Text, false);
+            bool hasLogo = ArtKit.Logo(banner, "OmanLNG_Logo", new Vector3(-4.05f, 0f, -0.12f), 1.7f, 1.25f) != null;
+            float tx = hasLogo ? 1.1f : 0f;
+            Shapes.Text3D(banner, "Oman LNG  ×  Otech SOC", new Vector3(tx, 0.22f, -0.12f), hasLogo ? 0.1f : 0.12f, gold, false, Fonts.Title);
+            Shapes.Text3D(banner, "SECURITY OPERATIONS CENTRE", new Vector3(tx, -0.55f, -0.12f), 0.055f, Palette.Text, false);
+            // The Oman LNG fort emblem flies above the fort's front towers.
+            foreach (var z in new[] { side, -side })
+                ArtKit.Logo(root, "OmanLNG_Emblem", new Vector3(FortFrontX, 4.3f, z), 1.7f, 1.05f, billboard: true);
         }
 
         void BuildServers()

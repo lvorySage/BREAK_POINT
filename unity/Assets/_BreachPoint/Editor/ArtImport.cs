@@ -7,6 +7,7 @@ namespace BreachPoint.EditorTools
     /// Import rules for Assets/_BreachPoint/Resources/Art so dropped-in assets need no manual setup:
     ///   *_nor.*        → normal map
     ///   Art/Sky/*.hdr  → cubemap (used for reflections)
+    ///   Art/Brand/*    → uncompressed, transparent logos
     ///   Art/Models/*   → no imported cameras/lights, materials kept inside the model
     /// </summary>
     public sealed class ArtImport : AssetPostprocessor
@@ -21,6 +22,15 @@ namespace BreachPoint.EditorTools
             if (file.EndsWith("_nor"))
             {
                 ti.textureType = TextureImporterType.NormalMap;
+            }
+            else if (assetPath.StartsWith(Root + "Brand/"))
+            {
+                // Logos: keep them crisp and transparent.
+                ti.alphaIsTransparency = true;
+                ti.textureCompression = TextureImporterCompression.Uncompressed;
+                ti.wrapMode = TextureWrapMode.Clamp;
+                ti.mipmapEnabled = true;
+                ti.anisoLevel = 4;
             }
             else if (assetPath.StartsWith(Root + "Sky/"))
             {

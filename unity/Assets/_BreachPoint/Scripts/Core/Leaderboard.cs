@@ -17,7 +17,7 @@ namespace BreachPoint
         [Serializable]
         public class Entry
         {
-            public string Initials;
+            public string Name;
             public string Team;
             public int Score;
             public int Accuracy;   // % of security decisions that were right
@@ -70,13 +70,29 @@ namespace BreachPoint
             return e.Count < Size || score > e[e.Count - 1].Score;
         }
 
-        /// <summary>Adds an entry; returns its 1-based rank (0 if it didn't make the board).</summary>
-        public static int Add(string initials, Team team, int score, int accuracy = 0)
+        public const int MaxNameLength = 12;
+
+        /// <summary>
+        /// Adds a score; returns its 1-based rank (0 if it didn't make the board).
+        /// A player's name appears once: a new score only replaces their entry if it is higher.
+        /// </summary>
+        public static int Add(string name, Team team, int score, int accuracy = 0)
         {
+            name = (name ?? "").Trim().ToUpperInvariant();
+            if (name.Length > MaxNameLength) name = name.Substring(0, MaxNameLength);
             var list = Load();
+            if (name.Length > 0)
+            {
+                var old = list.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase));
+                if (old != null)
+                {
+                    if (old.Score >= score) return list.IndexOf(old) + 1;
+                    list.Remove(old);
+                }
+            }
             var entry = new Entry
             {
-                Initials = initials,
+                Name = name,
                 Team = team == Team.Red ? "RED" : "BLUE",
                 Score = score,
                 Accuracy = accuracy,

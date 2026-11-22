@@ -29,7 +29,7 @@ namespace BreachPoint
     }
 
     /// <summary>
-    /// Booth session state machine: Title (leaderboard) → Join → each mini-game → Final → Initials → Title.
+    /// Booth session state machine: Main menu (leaderboard) → Join → Names → each mini-game → Final (scores saved) → menu.
     /// Also owns the global pause menu. Lives on the single object in Main.unity.
     /// </summary>
     public sealed partial class GameFlow : MonoBehaviour
@@ -131,6 +131,7 @@ namespace BreachPoint
                 Session = new Session();
                 yield return MainMenu();
                 yield return Join();
+                yield return EnterNames();
                 yield return Gauntlet(0);
             }
         }
@@ -149,7 +150,6 @@ namespace BreachPoint
                 _current = null;
             }
             yield return Final();
-            yield return Initials();
         }
 
         // ------------------------------------------------------------------ screens
@@ -175,7 +175,8 @@ namespace BreachPoint
             var t = box.transform;
             Ui.Label(t, "MOST CYBER AWARE", 34, Palette.Gold, TextAnchor.MiddleCenter, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -60), new Vector2(0, -12), Fonts.Title);
             Ui.Label(t, "Points for every right security call  +  accuracy bonus", 22, Palette.Muted, TextAnchor.MiddleCenter, new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -88), new Vector2(0, -58));
-            Ui.Label(t, "ACCURACY", 20, Palette.Muted, TextAnchor.MiddleCenter, new Vector2(0, 1), new Vector2(0, 1), new Vector2(440, -116), new Vector2(570, -90));
+            Ui.Label(t, "PLAYER", 20, Palette.Muted, TextAnchor.MiddleLeft, new Vector2(0, 1), new Vector2(0, 1), new Vector2(130, -116), new Vector2(400, -90));
+            Ui.Label(t, "ACCURACY", 20, Palette.Muted, TextAnchor.MiddleCenter, new Vector2(0, 1), new Vector2(0, 1), new Vector2(470, -116), new Vector2(590, -90));
             Ui.Label(t, "SCORE", 20, Palette.Muted, TextAnchor.MiddleRight, new Vector2(0, 1), new Vector2(0, 1), new Vector2(580, -116), new Vector2(720, -90));
             var top = Leaderboard.Load();
             if (top.Count == 0)
@@ -192,10 +193,10 @@ namespace BreachPoint
                 var rankColor = i == 0 ? Palette.Gold : Palette.Text;
                 if (i % 2 == 0) Ui.Panel(t, new Color(1, 1, 1, 0.035f), new Vector2(0, 1), new Vector2(1, 1), new Vector2(16, y - 46), new Vector2(-16, y), "Row");
                 Ui.Label(t, $"{i + 1}.", 30, rankColor, TextAnchor.MiddleRight, new Vector2(0, 1), new Vector2(0, 1), new Vector2(30, y - 46), new Vector2(110, y), Fonts.Mono);
-                Ui.Label(t, e.Initials, 32, rankColor, TextAnchor.MiddleLeft, new Vector2(0, 1), new Vector2(0, 1), new Vector2(150, y - 46), new Vector2(330, y), Fonts.Mono);
-                Ui.Label(t, e.Team, 26, c, TextAnchor.MiddleLeft, new Vector2(0, 1), new Vector2(0, 1), new Vector2(310, y - 46), new Vector2(430, y));
-                Ui.Label(t, $"{e.Accuracy}%", 28, Palette.Good, TextAnchor.MiddleCenter, new Vector2(0, 1), new Vector2(0, 1), new Vector2(440, y - 46), new Vector2(570, y), Fonts.Mono);
-                Ui.Label(t, $"{e.Score}", 30, rankColor, TextAnchor.MiddleRight, new Vector2(0, 1), new Vector2(0, 1), new Vector2(580, y - 46), new Vector2(720, y), Fonts.Mono);
+                Ui.Panel(t, c, new Vector2(0, 1), new Vector2(0, 1), new Vector2(118, y - 36), new Vector2(124, y - 10), "TeamMark");
+                Ui.Label(t, string.IsNullOrEmpty(e.Name) ? "—" : e.Name, 30, rankColor, TextAnchor.MiddleLeft, new Vector2(0, 1), new Vector2(0, 1), new Vector2(134, y - 46), new Vector2(470, y), Fonts.Mono);
+                Ui.Label(t, $"{e.Accuracy}%", 28, Palette.Good, TextAnchor.MiddleCenter, new Vector2(0, 1), new Vector2(0, 1), new Vector2(470, y - 46), new Vector2(590, y), Fonts.Mono);
+                Ui.Label(t, $"{e.Score}", 30, rankColor, TextAnchor.MiddleRight, new Vector2(0, 1), new Vector2(0, 1), new Vector2(590, y - 46), new Vector2(720, y), Fonts.Mono);
             }
         }
 
@@ -347,7 +348,7 @@ namespace BreachPoint
         {
             var p = Session.Players[i];
             if (p == null) return "";
-            return ready ? Palette.Paint($"{p.Name} ✔", p.Color) : Palette.Paint($"{p.Name}: press {p.Controls.ConfirmName}", Palette.A(p.Color, 0.75f));
+            return ready ? Palette.Paint($"{p.Display} ✔", p.Color) : Palette.Paint($"{p.Display}: press {p.Controls.ConfirmName}", Palette.A(p.Color, 0.75f));
         }
 
         IEnumerator Final()
@@ -369,16 +370,25 @@ namespace BreachPoint
             lines.AppendLine(Palette.Paint("CYBER AWARENESS", Palette.Gold) + "  (right security calls + accuracy bonus)");
             for (int i = 0; i < 2; i++)
                 lines.AppendLine($"{Session.Players[i].Tag}   {Palette.Paint(Session.AwarenessScore(i).ToString(), Palette.Gold)}   ·   {Session.Accuracy(i)}% of decisions right");
+            // Save each human player's awareness score under their name (no initials screen at the end any more).
+            for (int i = 0; i < 2; i++)
+            {
+                var p = Session.Players[i];
+                int score = Session.AwarenessScore(i);
+                if (p.Controls.IsCpu || score <= 0) continue;
+                int rank = Leaderboard.Add(p.Display, p.Team, score, Session.Accuracy(i));
+                if (rank > 0) lines.AppendLine(Palette.Paint($"{p.Display} is #{rank} on the Most Cyber Aware board!", Palette.Good));
+            }
             int aware0 = Session.AwarenessScore(0), aware1 = Session.AwarenessScore(1);
             if (aware0 != aware1)
             {
                 var top = Session.Players[aware0 > aware1 ? 0 : 1];
-                lines.AppendLine(Palette.Paint($"MOST CYBER AWARE: {top.Name}", top.Color));
+                lines.AppendLine(Palette.Paint($"MOST CYBER AWARE: {top.Display}", top.Color));
             }
             var card = new Card
             {
                 Kicker = "GAUNTLET RESULT",
-                Title = champ < 0 ? "IT'S A DRAW" : $"{Session.Players[champ].Name} TEAM WINS",
+                Title = champ < 0 ? "IT'S A DRAW" : $"{Session.Players[champ].Display} WINS",
                 Accent = champ < 0 ? Palette.Gold : Session.Players[champ].Color,
                 Body = lines.ToString(),
                 Footer = "Thanks for playing! Stay sharp out there.",
@@ -387,97 +397,6 @@ namespace BreachPoint
             };
             if (champ >= 0) Haptics.Pulse(Session.Players[champ].Controls, 0.4f, 0.8f, 0.6f);
             yield return ShowCard(card);
-        }
-
-        // ------------------------------------------------------------------ initials (leaderboard entry)
-
-        const string Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-        IEnumerator Initials()
-        {
-            yield return null;
-            var who = new List<int>();
-            for (int i = 0; i < 2; i++)
-                if (!Session.Players[i].Controls.IsCpu && Leaderboard.Qualifies(Session.AwarenessScore(i))) who.Add(i);
-            if (who.Count == 0) yield break;
-
-            State = "initials";
-            var s = NewScreen("Initials");
-            Ui.Panel(s, new Color(0, 0, 0, 0.65f), Vector2.zero, Vector2.one);
-            Ui.Label(s, "CYBER AWARE LEADERBOARD!", 72, Palette.Gold, TextAnchor.MiddleCenter, new Vector2(0, 0.78f), new Vector2(1, 0.92f), default, default, Fonts.Title);
-            Ui.Label(s, "Up / down: change letter   ·   A / ✕: next   ·   B / ○: back", 30, Palette.Text, TextAnchor.MiddleCenter, new Vector2(0, 0.71f), new Vector2(1, 0.77f));
-
-            int n = who.Count;
-            var letters = new char[n][];
-            var cursor = new int[n];
-            var done = new bool[n];
-            var nav = new float[n];
-            var slots = new Text[n][];
-            var status = new Text[n];
-            for (int k = 0; k < n; k++)
-            {
-                var p = Session.Players[who[k]];
-                letters[k] = (p.Team == Team.Red ? "RED" : "BLU").ToCharArray();
-                float x = n == 1 ? 0.5f : (k == 0 ? 0.3f : 0.7f);
-                var box = Ui.Box(s, new Vector2(x, 0.42f), new Vector2(640, 420), p.Color, "Entry" + k);
-                Ui.Label(box.transform, $"{p.Name} TEAM", 44, p.Color, TextAnchor.MiddleCenter, new Vector2(0, 0.8f), new Vector2(1, 0.95f), default, default, Fonts.Title);
-                Ui.Label(box.transform, $"{Session.AwarenessScore(who[k])} awareness  ·  {Session.Accuracy(who[k])}% right", 32, Palette.Gold, TextAnchor.MiddleCenter, new Vector2(0, 0.66f), new Vector2(1, 0.8f));
-                slots[k] = new Text[3];
-                for (int j = 0; j < 3; j++)
-                    slots[k][j] = Ui.Label(box.transform, "", 110, Color.white, TextAnchor.MiddleCenter, new Vector2(0.2f + j * 0.2f, 0.25f), new Vector2(0.4f + j * 0.2f, 0.62f), default, default, Fonts.Mono);
-                status[k] = Ui.Label(box.transform, "", 28, Palette.Muted, TextAnchor.MiddleCenter, new Vector2(0, 0.04f), new Vector2(1, 0.22f));
-            }
-
-            float timeout = 40f, el = 0f;
-            while (Array.Exists(done, d => !d) && el < timeout)
-            {
-                el += Time.unscaledDeltaTime;
-                for (int k = 0; k < n; k++)
-                {
-                    if (done[k]) continue;
-                    var c = Session.Players[who[k]].Controls;
-                    float y = c.Move.y;
-                    nav[k] -= Time.unscaledDeltaTime;
-                    if (Mathf.Abs(y) < 0.3f) nav[k] = 0f;
-                    else if (nav[k] <= 0f)
-                    {
-                        int idx = Alphabet.IndexOf(letters[k][cursor[k]]);
-                        idx = (idx + (y > 0 ? 1 : -1) + Alphabet.Length) % Alphabet.Length;
-                        letters[k][cursor[k]] = Alphabet[idx];
-                        nav[k] = 0.17f;
-                        Sfx.Play("switch", 0.5f);
-                    }
-                    if (c.ActionDown(0) && el > 0.3f)
-                    {
-                        Sfx.Play("confirm");
-                        if (++cursor[k] >= 3)
-                        {
-                            done[k] = true;
-                            var p = Session.Players[who[k]];
-                            int rank = Leaderboard.Add(new string(letters[k]), p.Team, Session.AwarenessScore(who[k]), Session.Accuracy(who[k]));
-                            status[k].text = Palette.Paint($"✔ SAVED · RANK #{rank}", Palette.Good);
-                            Haptics.Pulse(c, 0.3f, 0.6f, 0.25f);
-                        }
-                    }
-                    if (c.ActionDown(1) && cursor[k] > 0) cursor[k]--;
-                }
-                for (int k = 0; k < n; k++)
-                {
-                    for (int j = 0; j < 3; j++)
-                    {
-                        bool active = !done[k] && j == cursor[k];
-                        slots[k][j].text = letters[k][j].ToString();
-                        slots[k][j].color = active ? Palette.A(Palette.Gold, 0.6f + 0.4f * Mathf.Sin(Time.unscaledTime * 8f)) : Color.white;
-                    }
-                    if (!done[k]) status[k].text = $"Letter {cursor[k] + 1} of 3";
-                }
-                yield return null;
-            }
-            // Timeout: save whatever was entered.
-            for (int k = 0; k < n; k++)
-                if (!done[k]) Leaderboard.Add(new string(letters[k]), Session.Players[who[k]].Team, Session.AwarenessScore(who[k]), Session.Accuracy(who[k]));
-            yield return new WaitForSecondsRealtime(1.5f);
-            ClearScreen();
         }
 
         // ------------------------------------------------------------------ global pause
@@ -507,7 +426,7 @@ namespace BreachPoint
             if (!Paused)
             {
                 foreach (var p in Session.Players)
-                    if (p.Controls.Kind == ControlKind.Gamepad && !p.Controls.Connected) { SetPaused(true, $"{p.Name} controller disconnected. Reconnect it, then resume."); return; }
+                    if (p.Controls.Kind == ControlKind.Gamepad && !p.Controls.Connected) { SetPaused(true, $"{p.Display} controller disconnected. Reconnect it, then resume."); return; }
                 if (AnyPausePressed()) SetPaused(true, null);
                 return;
             }

@@ -19,6 +19,7 @@ namespace BreachPoint.Tests
             _g = PhishRace.Create();
             _g.AiEnabled = false;
             _g.ManualStep = true;
+            _g.MailsEnabled = false;
             _g.Init(_s);
             _g.StartHalf(0);
         }
@@ -199,6 +200,42 @@ namespace BreachPoint.Tests
             Assert.AreEqual(1, r.Right[0]);
             Assert.AreEqual(0, r.Wrong[0]);
             Assert.AreEqual(PhishRace.AwareLinkPoints[0], r.Aware[0]);
+        }
+
+        [Test]
+        public void RealEmail_Boosts_PhishingEmail_Stalls()
+        {
+            _g.MailsEnabled = true;
+            _g.SetMail(0, real: true, offset: 2f);          // first bend, on Red's line
+            SimDriving(1.6f, 2f, 0f, p1Drives: false);
+            Assert.AreEqual(1, _g.GoodMails[0], "drove through the real email");
+            Assert.Greater(_g.SurgeLeft(0), 0f, "boosted");
+            Assert.IsFalse(_g.MailActive(0));
+
+            _g.StartHalf(0);
+            _g.MailsEnabled = true;
+            _g.SetMail(0, real: false, offset: 2f);
+            SimDriving(1.6f, 2f, 0f, p1Drives: false);
+            Assert.AreEqual(1, _g.BadMails[0], "opened the phishing email");
+            Assert.AreEqual(1, _g.Phished[0]);
+            Assert.Greater(_g.StallLeft(0), 0f, "stalled");
+            var r = _g.ComputeResult();
+            Assert.AreEqual(1, r.Wrong[0]);
+        }
+
+        [Test]
+        public void EveryRealLinkAndSender_UsesTheRealDomain()
+        {
+            foreach (var tier in Links.Tiers)
+            foreach (var p in tier)
+            {
+                Assert.IsTrue(p.Real.Contains(Links.RealDomain) || p.Real.Contains("microsoft"), $"real: {p.Real}");
+                Assert.IsFalse(p.Fake == p.Real);
+                Assert.IsFalse(string.IsNullOrEmpty(p.Context));
+            }
+            foreach (var m in Links.Mails)
+                if (m.Real) Assert.IsTrue(m.From.EndsWith("@" + Links.RealDomain) || m.From.EndsWith("@microsoft.com"), m.From);
+                else Assert.IsFalse(m.From.EndsWith("@" + Links.RealDomain), m.From);
         }
 
         [Test]

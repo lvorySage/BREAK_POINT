@@ -89,7 +89,19 @@ namespace BreachPoint.Tests
             yield return Press(_p2, GamepadButton.South);
             yield return null;
             Screenshot.Capture("02-join");
+
+            // Names: Red types "A" then presses Y (done); Blue skips (Y) and plays as BLUE.
+            yield return WaitFor(() => _flow.State == "names", 5, "name screen");
+            yield return new WaitForSeconds(0.5f);
+            yield return Press(_p1, GamepadButton.South);
+            yield return Press(_p1, GamepadButton.DpadRight);
+            yield return Press(_p1, GamepadButton.South);
+            Screenshot.Capture("02b-names");
+            yield return Press(_p1, GamepadButton.North);
+            yield return Press(_p2, GamepadButton.North);
             yield return WaitFor(() => _flow.State.StartsWith("game:") && _flow.ScreenName == "Card", 5, "intro card");
+            Assert.AreEqual("AB", _flow.Session.Players[0].PlayerName, "typed on the on-screen keyboard");
+            Assert.AreEqual("BLUE", _flow.Session.Players[1].Display, "no name: team name");
             Assert.AreEqual(ControlKind.Gamepad, _flow.Session.Players[0].Controls.Kind);
             Assert.AreSame(_p1, _flow.Session.Players[0].Controls.Pad, "first pad to join is Red");
             Assert.AreSame(_p2, _flow.Session.Players[1].Controls.Pad);
@@ -210,7 +222,9 @@ namespace BreachPoint.Tests
             yield return WaitFor(() => _flow.State == "title", 6, "back to title");
             yield return new WaitForSeconds(0.5f);
             Screenshot.Capture("11-title-leaderboard");
-            Assert.Greater(Leaderboard.Load().Count, 0, "awareness score saved to the leaderboard");
+            var board = Leaderboard.Load();
+            Assert.Greater(board.Count, 0, "awareness score saved to the leaderboard");
+            Assert.IsTrue(board.Exists(e => e.Name == "BLUE" || e.Name == "AB"), "saved under the player's name");
         }
 
         [UnityTest]
@@ -222,6 +236,9 @@ namespace BreachPoint.Tests
             yield return WaitFor(() => _flow.State == "join", 5, "join");
             yield return Press(_p1, GamepadButton.South);
             yield return Press(_p1, GamepadButton.North);   // add CPU opponent
+            yield return WaitFor(() => _flow.State == "names", 5, "names");
+            yield return new WaitForSeconds(0.5f);
+            yield return Press(_p1, GamepadButton.North);   // done (no name)
             yield return WaitFor(() => _flow.ScreenName == "Card", 5, "intro");
             Assert.IsTrue(_flow.Session.Players[1].Controls.IsCpu);
             yield return new WaitForSeconds(0.9f);
@@ -388,7 +405,11 @@ namespace BreachPoint.Tests
             yield return Press(_p1, GamepadButton.South);
             yield return WaitFor(() => _flow.State == "join", 3, "join");
             yield return Press(_p1, GamepadButton.North);   // CPU opponent
+            yield return WaitFor(() => _flow.State == "names", 5, "names");
+            yield return new WaitForSeconds(0.5f);
+            yield return Press(_p1, GamepadButton.Start);   // Start also finishes the name
             yield return WaitFor(() => _flow.State == "game:PHISH RACE" && _flow.ScreenName == "Card", 5, "quick play goes straight to Phish Race");
+            Assert.AreEqual("CPU", _flow.Session.Players[1].PlayerName);
         }
     }
 

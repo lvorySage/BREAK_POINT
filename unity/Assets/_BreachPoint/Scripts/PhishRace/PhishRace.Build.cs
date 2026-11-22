@@ -14,6 +14,7 @@ namespace BreachPoint
         readonly float[,] _laneFlash = new float[2, 2];
         readonly Color[,] _laneFlashColor = new Color[2, 2];
         readonly TextMesh[] _forkHeader = new TextMesh[2];
+        readonly TextMesh[] _forkSub = new TextMesh[2];
 
         void BuildTrack()
         {
@@ -63,6 +64,7 @@ namespace BreachPoint
                 Shapes.Box(root, "GantryBeam", new Vector3(L + R, 4.4f, 0), new Vector3(Width + 1.6f, 0.6f, 0.5f), metal);
             }
             Shapes.Text3D(root, "START / FINISH", new Vector3(L + R, 6.2f, 0), 0.075f, Palette.Gold, true, Fonts.Title);
+            ArtKit.Logo(root, "OmanLNG_Emblem", new Vector3(L + R, 8.2f, 0), 2f, 1.05f, billboard: true);
 
             for (int f = 0; f < 2; f++) BuildFork(root, f);
             BuildInfield(root);
@@ -154,16 +156,17 @@ namespace BreachPoint
             }
             // Header sign beyond the outer lane (far side for the top fork, near side for the bottom).
             float hz = sz * (R + Width / 2f + 1.6f);
-            var header = Shapes.Text3D(root, "WHICH LINK IS REAL?", new Vector3(0, 1.2f, hz), 0.085f, Palette.Gold, true, Fonts.Title);
-            _forkHeader[fork] = header;
-            var arrow = fork == 0 ? "◀◀  pick a lane before the divider" : "pick a lane before the divider  ▶▶";
-            if (fork == 1) Shapes.Text3D(root, arrow, new Vector3(0, 0.3f, hz + sz * 1.6f), 0.05f, Palette.Muted);
+            // The phishing scenario for this fork ("Payroll: confirm your bank details") and the question.
+            // Far fork: stack vertically (scenario above the question); near fork: question in front, nearer the camera.
+            _forkHeader[fork] = Shapes.Text3D(root, "", new Vector3(0, fork == 0 ? 3.4f : 1.4f, hz), 0.15f, Palette.Gold, true, Fonts.Bold);
+            _forkSub[fork] = Shapes.Text3D(root, "WHICH LINK IS REAL?", new Vector3(0, fork == 0 ? 1.4f : 0.2f, fork == 0 ? hz : hz + sz * 1.8f), 0.08f, Palette.Text, true, Fonts.Title);
         }
 
         void ShowForkLinks(int fork)
         {
             if (_laneText[fork, 0] == null) return;
             var pair = ForkLinks(fork);
+            if (_forkHeader[fork] != null) _forkHeader[fork].text = $"\"{pair.Context}\"";
             for (int o = 0; o < 2; o++)
             {
                 bool real = (o == 1) == _realOuter[fork];
@@ -191,7 +194,12 @@ namespace BreachPoint
         void BuildInfield(Transform root)
         {
             // Holographic title in the infield.
-            var t = Shapes.Text3D(root, "PHISH RACE", new Vector3(0, 0.1f, 0.6f), 0.2f, Palette.A(LinkCyan, 0.85f), false, Fonts.Title);
+            var t = Shapes.Text3D(root, "PHISH RACE", new Vector3(0, 0.1f, 0.6f), 0.15f, Palette.A(LinkCyan, 0.85f), false, Fonts.Title);
+            foreach (var (name, x) in new[] { ("OmanLNG_Logo", -7.6f), ("OmanLNG_Emblem", 7.6f) })
+            {
+                var logo = ArtKit.Logo(root, name, new Vector3(x, 0.12f, 0), 3.4f, 1.1f);
+                if (logo != null) logo.transform.localRotation = Quaternion.Euler(90f, 0, 0); // flat on the infield
+            }
             t.transform.localRotation = Quaternion.Euler(90f, 0, 0);
             var t2 = Shapes.Text3D(root, "Read the link before you click", new Vector3(0, 0.1f, -1.4f), 0.07f, Palette.Muted, false);
             t2.transform.localRotation = Quaternion.Euler(90f, 0, 0);
@@ -224,6 +232,38 @@ namespace BreachPoint
             if (ac != null) ArtKit.Fit(ac, new Vector3(3f, 2f, 3f), new Vector3(-26f, 1f, -15f), zForward: false);
             var ant = ArtKit.Model("RoofAntenna", root);
             if (ant != null) ArtKit.Fit(ant, new Vector3(1.5f, 8f, 1.5f), new Vector3(27f, 4f, -15f), zForward: false);
+        }
+
+        /// <summary>Email card floating over the track. Real and phishing emails look identical: only the sender gives it away.</summary>
+        void ShowMail(MailSlot m)
+        {
+            if (m.Go == null)
+            {
+                m.Go = new GameObject("Email");
+                m.Go.transform.SetParent(transform, false);
+                var card = new GameObject("Card").transform;
+                card.SetParent(m.Go.transform, false);
+                card.localPosition = new Vector3(0, 2.4f, 0);
+                card.gameObject.AddComponent<Billboard>();
+                var white = new Color(0.85f, 0.95f, 1f);
+                Shapes.Box(card, "Board", Vector3.zero, new Vector3(7f, 2.3f, 0.06f), Mats.Lit(new Color(0.04f, 0.05f, 0.08f), 0.5f), false);
+                Shapes.Box(card, "Edge", new Vector3(0, 1.16f, 0), new Vector3(7f, 0.08f, 0.08f), Mats.Glow(white, 1.6f), false);
+                Shapes.Text3D(card, "NEW EMAIL", new Vector3(0, 0.82f, -0.05f), 0.05f, Palette.Gold, false, Fonts.Title);
+                m.From = Shapes.Text3D(card, "", new Vector3(0, 0.22f, -0.05f), 0.08f, white, false, Fonts.Mono);
+                m.Subject = Shapes.Text3D(card, "", new Vector3(0, -0.55f, -0.05f), 0.085f, Palette.Text, false);
+                Shapes.Ring(m.Go.transform, "Pickup", MailRadius, 0.09f, Mats.Glow(white, 1.8f)).transform.localPosition = new Vector3(0, 0.08f, 0);
+                Shapes.Box(m.Go.transform, "Stem", new Vector3(0, 0.6f, 0), new Vector3(0.06f, 1.1f, 0.06f), Mats.Glow(white, 1.2f), false);
+                Shapes.PointLight(m.Go.transform, new Vector3(0, 1.2f, 0), white, 4f, 1.5f);
+            }
+            m.Go.SetActive(m.Active && m.Index >= 0);
+            if (!m.Active || m.Index < 0) return;
+            m.Go.transform.localPosition = m.Pos;
+            var mail = Links.Mails[m.Index];
+            m.From.text = "From: " + mail.From;
+            m.Subject.text = mail.Subject;
+            // Measured advance: mono ≈ 3.6 m per unit of characterSize per character, Rajdhani ≈ 4.7.
+            m.From.characterSize = Mathf.Min(0.06f, 6.4f / (Mathf.Max(1, m.From.text.Length) * 3.6f));
+            m.Subject.characterSize = Mathf.Min(0.055f, 6.4f / (Mathf.Max(1, m.Subject.text.Length) * 4.7f));
         }
 
         GameObject BuildLure(Vector3 pos, string text)

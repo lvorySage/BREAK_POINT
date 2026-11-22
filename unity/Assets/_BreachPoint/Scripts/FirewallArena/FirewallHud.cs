@@ -84,10 +84,10 @@ namespace BreachPoint
         {
             var a = _s.Players[_g.AttackerIndex];
             var d = _s.Players[_g.DefenderIndex];
-            _atkTitle.text = $"{a.Name} · ATTACKER";
+            _atkTitle.text = $"{a.Display} · ATTACKER";
             _atkTitle.color = a.Color;
             _atkEdge.color = a.Color;
-            _defTitle.text = $"DEFENDER · {d.Name}";
+            _defTitle.text = $"DEFENDER · {d.Display}";
             _defTitle.color = d.Color;
             _defEdge.color = d.Color;
             _half.text = _g.Half == 0 ? "HALF 1 / 2 · ROLES SWAP NEXT" : "HALF 2 / 2 · FINAL";

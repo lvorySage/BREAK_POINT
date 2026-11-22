@@ -6,7 +6,7 @@ namespace BreachPoint
 {
     /// <summary>
     /// Mini-game 3. Both ships race laps of a rooftop track. Each straight has a FORK: two lanes, each painted
-    /// with a link. One is real (omanlng.com): speed boost. The other is a look-alike: PHISHED, the ship stalls.
+    /// with a link. One is real (omanlng.co.om): speed boost. The other is a look-alike: PHISHED, the ship stalls.
     /// Each heat one player is the PHISHER (X drops bait lures behind them) and the other is the TARGET
     /// (X reports a nearby lure). Two heats; roles swap. Winner = more race points.
     /// </summary>
@@ -30,12 +30,17 @@ namespace BreachPoint
         public const int HeatWinPoints = 20, SafePoints = 5, LurePoints = 10, ReportPoints = 5;
         /// <summary>Awareness points for a real link, by difficulty tier (lap); reports earn AwareReportPoints.</summary>
         public static readonly int[] AwareLinkPoints = { 10, 15, 20 };
-        public const int AwareReportPoints = 10;
+        public const int AwareReportPoints = 10, AwareMailPoints = 5;
+        /// <summary>Email pickups on the bends (distance along the track).</summary>
+        public static readonly float[] MailSlotS = { 7f, Mathf.PI * R + 2f * L, 2f * Mathf.PI * R + 4f * L - 9f };
+        public const float MailRadius = 1.1f, MailRespawn = 3f, MailRefresh = 14f;
         public const float FinishGrace = 8f;       // the other ship gets this long after the leader finishes
 
         public float HalfSeconds = 60f;
         public bool AiEnabled = true;
         public bool ManualStep;
+        /// <summary>Random email pickups on the bends (rule tests switch them off for exact counts).</summary>
+        public bool MailsEnabled = true;
         public int CpuLevel = 1;
 
         public string Title => "PHISH RACE";
@@ -49,6 +54,8 @@ namespace BreachPoint
         public readonly int[] Reports = new int[2];
         public readonly int[] LuresDropped = new int[2];
         public readonly int[] AwarePoints = new int[2];
+        public readonly int[] GoodMails = new int[2];     // real emails opened (boost)
+        public readonly int[] BadMails = new int[2];      // phishing emails opened (stall; also counted in Phished)
 
         // ---- current heat ----
         public int Half { get; private set; }
@@ -189,7 +196,12 @@ namespace BreachPoint
             _tier[0] = _tier[1] = 0;
             _pair[0] = _pair[1] = -1;
             for (int f = 0; f < 2; f++) RandomizeFork(f);
-            for (int i = 0; i < 2; i++) _veh[i].SetTag($"{_s.Players[i].Name} · {(i == AttackerIndex ? "PHISHER" : "TARGET")}", _s.Players[i].Color);
+            for (int m = 0; m < _mails.Length; m++)
+            {
+                if (MailsEnabled) SpawnMail(m);
+                else { _mails[m].Active = false; ShowMail(_mails[m]); }
+            }
+            for (int i = 0; i < 2; i++) _veh[i].SetTag($"{_s.Players[i].Display} · {(i == AttackerIndex ? "PHISHER" : "TARGET")}", _s.Players[i].Color);
             _hud.OnHalfStart();
             foreach (var p in _s.Players) Haptics.LightBar(p.Controls, p.Color);
             _playing = play;
@@ -323,6 +335,7 @@ namespace BreachPoint
             ShipCollision();
             for (int i = 0; i < 2; i++) TrackProgress(i);
             StepLures(dt);
+            StepMails(dt);
             for (int f = 0; f < 2; f++) if (_refreshPending[f] && !Approaching(f)) RandomizeFork(f);
 
             UpdateVisuals(dt);
@@ -444,7 +457,7 @@ namespace BreachPoint
                 Phished[i]++;
                 _stall[i] = StallSeconds;
                 Popup.Show(at, "PHISHED!", Palette.Bad, 0.12f);
-                _hud.Alert($"{_s.Players[i].Name} clicked {pair.Fake}: {pair.Clue}", Palette.Bad, i);
+                _hud.Alert($"{_s.Players[i].Display} clicked {pair.Fake}: {pair.Clue}", Palette.Bad, i);
                 if (i == DefenderIndex) AddPoints(AttackerIndex, LurePoints / 2);
                 Sfx.Play("hit");
                 Haptics.Pulse(_s.Players[i].Controls, 0.8f, 1f, 0.35f);
@@ -509,7 +522,7 @@ namespace BreachPoint
             {
                 HeatWinner = i;
                 AddPoints(i, HeatWinPoints);
-                _hud.Big($"{_s.Players[i].Name} WINS THE HEAT", _s.Players[i].Color);
+                _hud.Big($"{_s.Players[i].Display} WINS THE HEAT", _s.Players[i].Color);
                 _hud.BigFade(2.5f);
                 Sfx.Play("win");
             }
@@ -527,7 +540,7 @@ namespace BreachPoint
                 {
                     HeatWinner = _prog[0] > _prog[1] ? 0 : 1;
                     AddPoints(HeatWinner, HeatWinPoints);
-                    _hud.Big($"TIME! {_s.Players[HeatWinner].Name} LEADS", _s.Players[HeatWinner].Color);
+                    _hud.Big($"TIME! {_s.Players[HeatWinner].Display} LEADS", _s.Players[HeatWinner].Color);
                 }
                 else _hud.Big("TIME!", Palette.Gold);
                 _hud.BigFade(2.5f);
@@ -603,7 +616,7 @@ namespace BreachPoint
                     AddPoints(AttackerIndex, LurePoints);
                     _stall[DefenderIndex] = StallSeconds;
                     Popup.Show(l.Pos + Vector3.up * 2.5f, "HOOKED BY BAIT!", Palette.Bad, 0.11f);
-                    _hud.Alert($"{_s.Players[DefenderIndex].Name} took the bait! Don't click unexpected offers.", Palette.Bad, DefenderIndex);
+                    _hud.Alert($"{_s.Players[DefenderIndex].Display} took the bait! Don't click unexpected offers.", Palette.Bad, DefenderIndex);
                     Sfx.Play("hit");
                     Haptics.Pulse(_s.Players[DefenderIndex].Controls, 0.8f, 1f, 0.35f);
                     _shake = Mathf.Max(_shake, 0.5f);
@@ -643,6 +656,137 @@ namespace BreachPoint
             _lures.Add(new Lure { Pos = Flat(pos), Go = BuildLure(Flat(pos), Links.Bait[0]) });
         }
 
+        // ================================================================== email pickups (boost or phish)
+
+        sealed class MailSlot
+        {
+            public int Index = -1;
+            public bool Active;
+            public float Offset, Timer;
+            public Vector3 Pos;
+            public GameObject Go;
+            public TextMesh From, Subject;
+        }
+        readonly MailSlot[] _mails = { new MailSlot(), new MailSlot(), new MailSlot() };
+        int _lastMail = -1;
+
+        public int MailCount => _mails.Length;
+        public bool MailActive(int slot) => _mails[slot].Active;
+        public Links.Mail MailAt(int slot) => Links.Mails[_mails[slot].Index];
+        public Vector3 MailPos(int slot) => _mails[slot].Pos;
+
+        void SpawnMail(int slot, int forceIndex = -1)
+        {
+            var m = _mails[slot];
+            int idx = forceIndex;
+            if (idx < 0)
+            {
+                // Roughly half real, half phishing; never the same email twice in a row.
+                do idx = Random.Range(0, Links.Mails.Length);
+                while (idx == _lastMail || System.Array.Exists(_mails, x => x != m && x.Active && x.Index == idx));
+            }
+            _lastMail = idx;
+            m.Index = idx;
+            m.Offset = new[] { -2.2f, 0f, 2.2f }[Random.Range(0, 3)];
+            m.Pos = At(MailSlotS[slot], m.Offset);
+            m.Active = true;
+            m.Timer = 0f;
+            ShowMail(m);
+        }
+
+        /// <summary>Test hook: put a specific email (real or fake) in a slot.</summary>
+        public void SetMail(int slot, bool real, float offset)
+        {
+            int idx = System.Array.FindIndex(Links.Mails, x => x.Real == real);
+            SpawnMail(slot, idx);
+            var m = _mails[slot];
+            m.Offset = offset;
+            m.Pos = At(MailSlotS[slot], offset);
+            ShowMail(m);
+        }
+
+        bool ShipNear(Vector3 p, float r)
+        {
+            for (int i = 0; i < 2; i++) if ((Flat(_veh[i].transform.position) - p).magnitude < r) return true;
+            return false;
+        }
+
+        void StepMails(float dt)
+        {
+            if (!MailsEnabled) return;
+            for (int k = 0; k < _mails.Length; k++)
+            {
+                var m = _mails[k];
+                m.Timer += dt;
+                if (!m.Active)
+                {
+                    if (m.Timer > MailRespawn && !ShipNear(At(MailSlotS[k]), 14f)) SpawnMail(k);
+                    continue;
+                }
+                if (m.Timer > MailRefresh && !ShipNear(m.Pos, 16f)) { SpawnMail(k); continue; }
+                for (int i = 0; i < 2; i++)
+                {
+                    if (Finished(i) || (Flat(_veh[i].transform.position) - m.Pos).magnitude > CarRadius + MailRadius) continue;
+                    OpenMail(i, m);
+                    break;
+                }
+            }
+        }
+
+        void OpenMail(int i, MailSlot m)
+        {
+            var mail = Links.Mails[m.Index];
+            var at = m.Pos + Vector3.up * 2.5f;
+            if (mail.Real)
+            {
+                GoodMails[i]++;
+                AwarePoints[i] += AwareMailPoints;
+                AddPoints(i, SafePoints);
+                _surge[i] = SurgeSeconds;
+                Popup.Show(at, "REAL EMAIL: BOOST!", Palette.Good, 0.09f);
+                Sfx.Play("boost");
+                Haptics.Pulse(_s.Players[i].Controls, 0.1f, 0.4f, 0.12f);
+            }
+            else
+            {
+                BadMails[i]++;
+                Phished[i]++;
+                _stall[i] = StallSeconds;
+                if (i == DefenderIndex) AddPoints(AttackerIndex, LurePoints / 2);
+                Popup.Show(at, "PHISHING EMAIL!", Palette.Bad, 0.11f);
+                _hud.Alert($"{_s.Players[i].Display} opened {mail.From}: {mail.Clue}", Palette.Bad, i);
+                Sfx.Play("hit");
+                Haptics.Pulse(_s.Players[i].Controls, 0.8f, 1f, 0.35f);
+                _shake = Mathf.Max(_shake, 0.4f);
+            }
+            m.Active = false;
+            m.Timer = 0f;
+            ShowMail(m);
+        }
+
+        /// <summary>CPU: steer into real emails and around phishing ones (and sometimes gets it wrong).</summary>
+        float AiMailLane(int i, float lane)
+        {
+            float myS = _lastS[i];
+            for (int k = 0; k < _mails.Length; k++)
+            {
+                var m = _mails[k];
+                if (!m.Active) continue;
+                float ahead = Mathf.Repeat(MailSlotS[k] - myS, Perimeter);
+                if (ahead > 13f) continue;
+                if (_aiMailSeen[i] != k * 1000 + m.Index)
+                {
+                    _aiMailSeen[i] = k * 1000 + m.Index;
+                    float accuracy = CpuLevel == 0 ? 0.55f : CpuLevel == 2 ? 0.92f : 0.75f;
+                    _aiMailTrust[i] = Random.value < accuracy ? Links.Mails[m.Index].Real : !Links.Mails[m.Index].Real;
+                }
+                return _aiMailTrust[i] ? m.Offset : (m.Offset >= 0f ? m.Offset - 3.2f : m.Offset + 3.2f);
+            }
+            return lane;
+        }
+        readonly int[] _aiMailSeen = { -1, -1 };
+        readonly bool[] _aiMailTrust = new bool[2];
+
         // ================================================================== CPU
 
         readonly int[] _aiGate = { -1, -1 };
@@ -667,6 +811,7 @@ namespace BreachPoint
                 _aiLane[i] = pickOuter ? 2f : -2f;
             }
             float lane = toGate < ForkLength + 14f ? _aiLane[i] : Mathf.MoveTowards(Offset(me), 0f, 1.5f);
+            if (toGate >= ForkLength + 14f) lane = AiMailLane(i, lane);
 
             var target = At(_lastS[i] + 5.5f, lane);
             var to = target - me;
@@ -697,7 +842,8 @@ namespace BreachPoint
 
         string Legend() =>
             $"Race {Laps} laps (the links get trickier every lap). On each straight the track {Palette.Paint("FORKS", Palette.Gold)}: each lane is painted with a link.\n" +
-            $"{Palette.Paint("REAL link", Palette.Good)} (really omanlng.com) = speed boost  ·  {Palette.Paint("LOOK-ALIKE", Palette.Bad)} = PHISHED, you stall.\n\n" +
+            $"{Palette.Paint("REAL link", Palette.Good)} (really {Links.RealDomain}) = speed boost  ·  {Palette.Paint("LOOK-ALIKE", Palette.Bad)} = PHISHED, you stall.\n" +
+            $"{Palette.Paint("EMAILS", Palette.Gold)} float on the bends: drive through a real sender for a boost, avoid the phishing ones.\n\n" +
             $"{Palette.Paint("PHISHER", Palette.Red)}: X / □ drops bait behind you. Hook the target for +{LurePoints}.\n" +
             $"{Palette.Paint("TARGET", Palette.Blue)}: X / □ reports nearby bait (+{ReportPoints}), or just steer around it.\n\n" +
             Palette.Paint("Both: steer with the stick  ·  A / ✕ or RT / R1 boost  ·  1st over the line +" + HeatWinPoints, Palette.Muted);
@@ -737,7 +883,7 @@ namespace BreachPoint
 
             for (int i = 0; i < 2; i++)
             {
-                r.Right[i] = SafeLinks[i] + Reports[i];
+                r.Right[i] = SafeLinks[i] + Reports[i] + GoodMails[i];
                 r.Wrong[i] = Phished[i];
                 r.Aware[i] = AwarePoints[i];
             }
@@ -745,7 +891,7 @@ namespace BreachPoint
             int phished = Phished[0] + Phished[1], reports = Reports[0] + Reports[1];
             r.Lesson = phished > 0
                 ? $"Phishing caught you {phished} time(s). Before you click, read the real domain: it's the part just before the first \"/\". " +
-                  "Look-alikes swap letters (0 for O), add words (omanlng-login) or use free email. When in doubt, report it to IT."
+                  "Oman LNG is omanlng.co.om: look-alikes swap letters (0 for O), add words (omanlng-login), use .com or free email. When in doubt, report it to IT."
                 : reports > 0
                     ? $"Nobody got phished, and {reports} bait(s) were reported. Reporting suspicious emails warns everyone else too."
                     : "Phishing links look almost real. Check the domain before you click, and report anything suspicious.";
@@ -761,7 +907,7 @@ namespace BreachPoint
             return new Card
             {
                 Kicker = "PHISH RACE · RESULT",
-                Title = r.Winner < 0 ? "DRAW" : $"{_s.Players[r.Winner].Name} WINS",
+                Title = r.Winner < 0 ? "DRAW" : $"{_s.Players[r.Winner].Display} WINS",
                 Accent = r.Winner < 0 ? Palette.Gold : _s.Players[r.Winner].Color,
                 Body = Row(0) + "\n" + Row(1) + "\n\n" + Palette.Paint("LESSON", Palette.Gold) + "\n" + r.Lesson,
                 Footer = "Both players: press A / ✕ to continue",

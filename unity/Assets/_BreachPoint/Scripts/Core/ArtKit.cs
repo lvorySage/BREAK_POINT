@@ -132,6 +132,60 @@ namespace BreachPoint
             return go;
         }
 
+        static Material _logoBase;
+
+        /// <summary>Loads Resources/Art/Brand/&lt;name&gt; (null if missing).</summary>
+        public static Texture2D Brand(string name) => Resources.Load<Texture2D>("Art/Brand/" + name);
+
+        /// <summary>
+        /// A logo panel in the world: transparent, unlit quad of the given height (width follows the image).
+        /// Glow &gt; 1 lets bloom catch it at night. Faces -Z like TextMesh; add a Billboard to face the camera.
+        /// </summary>
+        public static GameObject Logo(Transform parent, string name, Vector3 localPos, float height, float glow = 1.1f, bool billboard = false)
+        {
+            var tex = Brand(name);
+            if (tex == null) return null;
+            if (_logoBase == null)
+            {
+                var unlit = Resources.Load<Material>("Materials/BP_Unlit");
+                _logoBase = unlit != null ? new Material(unlit) : new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+                _logoBase.name = "Logo";
+                _logoBase.SetFloat("_Surface", 1f);
+                _logoBase.SetFloat("_Blend", 0f);
+                _logoBase.SetOverrideTag("RenderType", "Transparent");
+                _logoBase.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
+                _logoBase.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
+                _logoBase.SetInt("_ZWrite", 0);
+                _logoBase.SetFloat("_Cull", 0f);
+                _logoBase.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                _logoBase.renderQueue = (int)RenderQueue.Transparent;
+            }
+            var m = new Material(_logoBase);
+            m.SetTexture("_BaseMap", tex);
+            m.SetColor("_BaseColor", new Color(glow, glow, glow, 1f));
+            var q = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            q.name = "Logo_" + name;
+            Object.Destroy(q.GetComponent<Collider>());
+            q.transform.SetParent(parent, false);
+            q.transform.localPosition = localPos;
+            // Unity's quad faces -Z, the same way TextMesh reads: no extra rotation needed.
+            q.transform.localScale = new Vector3(height * tex.width / (float)tex.height, height, 1f);
+            var r = q.GetComponent<MeshRenderer>();
+            r.sharedMaterial = m;
+            r.shadowCastingMode = ShadowCastingMode.Off;
+            if (billboard)
+            {
+                var holder = new GameObject("LogoBoard").transform;
+                holder.SetParent(parent, false);
+                holder.localPosition = localPos;
+                holder.gameObject.AddComponent<Billboard>();
+                q.transform.SetParent(holder, false);
+                q.transform.localPosition = Vector3.zero;
+                return holder.gameObject;
+            }
+            return q;
+        }
+
         public static bool HasModel(string slot) => Resources.Load<GameObject>("Art/Models/" + slot) != null;
 
         /// <summary>Night-city reflections from the HDRI (makes metal and wet surfaces read as premium).</summary>

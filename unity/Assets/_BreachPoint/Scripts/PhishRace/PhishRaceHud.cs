@@ -48,7 +48,7 @@ namespace BreachPoint
 
             var legend = Ui.Panel(root, Palette.Panel, new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(-900, 20), new Vector2(900, 84), "Legend");
             Ui.Label(legend.transform,
-                $"Pick the lane with the {Palette.Paint("REAL link", Palette.Good)}: the domain must really be {Palette.Paint("omanlng.com", Palette.Good)}.  " +
+                $"Pick the lane with the {Palette.Paint("REAL link", Palette.Good)}: the domain must really be {Palette.Paint(Links.RealDomain, Palette.Good)}.  " +
                 $"Look-alikes = {Palette.Paint("PHISHED", Palette.Bad)}", 26, Palette.Text, TextAnchor.MiddleCenter, Vector2.zero, Vector2.one);
 
             _big = Ui.Label(root, "", 150, Color.white, TextAnchor.MiddleCenter, new Vector2(0, 0.3f), new Vector2(1, 0.75f), default, default, Fonts.Title);
@@ -75,7 +75,7 @@ namespace BreachPoint
             {
                 var p = _s.Players[i];
                 bool atk = i == _g.AttackerIndex;
-                _title[i].text = i == 0 ? $"{p.Name} · {(atk ? "PHISHER" : "TARGET")}" : $"{(atk ? "PHISHER" : "TARGET")} · {p.Name}";
+                _title[i].text = i == 0 ? $"{p.Display} · {(atk ? "PHISHER" : "TARGET")}" : $"{(atk ? "PHISHER" : "TARGET")} · {p.Display}";
                 _title[i].color = p.Color;
                 _edge[i].color = p.Color;
                 _boost[i].text = $"{p.Controls.ButtonName(0)} / RT  BOOST";

@@ -32,6 +32,9 @@ For the best view, maximise the Game view (**Shift + Space** over it) at 16:9.
    - The **Most Cyber Aware** top-10 is on the right (see below).
    Whoever selects Play is Player 1 (Red).
 2. **Join:** Player 2 presses **A / ✕**. No second player? Press **Y / △** (keyboard **Tab**) for a CPU opponent.
+   **Names:** each player types a name (up to 12 letters) on an on-screen keyboard with their own controller:
+   stick moves, **A / ✕** types, **B / ○** deletes, **Y / △** or **Start** is done. No name = shown as RED / BLUE.
+   The name is shown in every game and used on the leaderboard.
 3. Each game has 2 halves; Red and Blue swap roles at half-time. Left alone for 2 minutes, menus go back to the title.
 
 ### Firewall Arena (mini-game 1)
@@ -63,7 +66,7 @@ The winner is whoever stole more data while attacking.
 | Data Heist Ball | encryption or DLP save (15), data returned to the vault (10) | data stolen while defending |
 | Phish Race | real link taken (10 / 15 / 20 by lap), bait reported (10) | phished (fake link or bait) |
 
-After the gauntlet, qualifying players enter 3-letter initials (stick up/down, A next, B back).
+Scores are saved automatically at the end, under the player's name (one entry per name: their best score; CPU players aren't saved).
 Clear it before the event with **Breach Point → Reset Leaderboard**.
 
 
@@ -77,9 +80,12 @@ Each exfil steals 20%. Roles swap at half-time; the winner stole more data. Poin
 ### Phish Race (mini-game 3)
 
 Both ships race 3 laps. On each straight the track **forks** into two lanes, each painted with a link or sender.
-Links get harder every lap: lap 1 obvious fakes (`hr@omanlng.co`, Gmail senders), lap 2 look-alikes (`0manlng.com`,
-`omanlng.com.verify-mail.co`), lap 3 expert tricks (`omanlng.com@secure-hr.net`, `omanlng.corn`, `vpn-omanlng.com`).
-One is real (really `omanlng.com`) and gives a speed boost; the other is a look-alike (`0manlng.com`, `omanlng-login.net`,
+Oman LNG's real domain is **`omanlng.co.om`**. Each fork shows a phishing scenario ("Payroll: confirm your bank details")
+and links get harder every lap: lap 1 obvious fakes (`hr@omanlng.com`, Gmail senders), lap 2 look-alikes (`0manlng.co.om`,
+`omanlng.co.om.verify-mail.co`), lap 3 expert tricks (`omanlng.co.om@secure-hr.net`, `ornanlng.co.om`, `vpn-omanlng.co.om`).
+**Emails** float on the bends: drive through a real sender (`it@omanlng.co.om`) for a boost; a phishing sender
+(`it-support@omanlng-co.om`, `ceo.omanlng@gmail.com`) stalls you.
+One is real (really `omanlng.co.om`) and gives a speed boost; the other is a look-alike (`0manlng.co.om`, `omanlng-login.net`,
 `it.helpdesk@gmail.com`…) and the ship is **PHISHED** and stalls. Links change after every pass, and the clue shows on screen.
 Each heat one player is the **PHISHER** (**X / □** drops bait behind them: +10 if the target hits it) and the other is the **TARGET**
 (**X / □** reports bait within 10 m: +5). **A / ✕** or **RT / R1** boosts. Points: 1st over the line +20, real link +5.
@@ -103,7 +109,7 @@ The leaderboard and options are shared between the app and the editor's play mod
 
 ## Automated tests
 
-**Window → General → Test Runner → PlayMode → Run All** (48 tests: the rules of each mini-game, leaderboard, pause menu, main menu, and a full two-gamepad playthrough of the gauntlet).
+**Window → General → Test Runner → PlayMode → Run All** (51 tests: the rules of each mini-game, leaderboard, pause menu, main menu, and a full two-gamepad playthrough of the gauntlet).
 From a terminal, with the editor closed:
 
 ```bash

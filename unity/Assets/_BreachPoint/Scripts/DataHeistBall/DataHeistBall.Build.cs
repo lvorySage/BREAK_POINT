@@ -122,7 +122,8 @@ namespace BreachPoint
             Shapes.Box(g, "Bar", new Vector3(-GoalDepth / 2f, 3.1f, 0), new Vector3(0.4f, 0.25f, GoalHalf * 2), glow, false);
             var terminal = ArtKit.Model("VaultTerminal", g);
             if (terminal != null) ArtKit.Fit(terminal, new Vector3(1.6f, 2.6f, 3f), new Vector3(GoalDepth / 2f + 1.4f, 1.3f, 0), zForward: false);
-            Shapes.Text3D(g, "OmanLNG DATA VAULT", new Vector3(0, 4.4f, 0), 0.085f, gold, true, Fonts.Title);
+            Shapes.Text3D(g, "Oman LNG DATA VAULT", new Vector3(0, 4.4f, 0), 0.085f, gold, true, Fonts.Title);
+            ArtKit.Logo(g, "OmanLNG_Emblem", new Vector3(0, 6.1f, 0), 2.1f, 1.05f, billboard: true);
             Shapes.PointLight(g, new Vector3(-1.5f, 2f, 0), blue, 8f, 3f);
         }
 

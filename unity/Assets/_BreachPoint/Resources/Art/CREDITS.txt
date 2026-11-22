@@ -7,3 +7,5 @@ Quaternius Cyberpunk Game Kit (quaternius.com, CC0): Turret_Teleporter -> ExfilP
   Collectible_Board -> DataChip, AC -> RoofAC, Antenna_1 -> RoofAntenna
 Kenney Racing Kit (kenney.nl, CC0): overheadLights -> RaceGantry, pylon -> RacePylon, bannerTowerRed -> RaceBanner,
   grandStandCovered -> RaceStand
+Oman LNG logo (Brand/OmanLNG_Logo.png, from omanlng.co.om) and fort emblem (Brand/OmanLNG_Emblem.png, from Wikipedia):
+  trademarks of Oman LNG LLC, used for the Oman LNG Cyber Security Week booth only.

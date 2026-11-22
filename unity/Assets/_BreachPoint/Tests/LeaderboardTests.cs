@@ -24,7 +24,7 @@ namespace BreachPoint.Tests
             Assert.AreEqual(3, Leaderboard.Add("CCC", Team.Red, 10));
             Assert.AreEqual(3, Leaderboard.Add("DDD", Team.Blue, 50), "ties keep the earlier score (AAA) ahead");
             var list = Leaderboard.Load();
-            CollectionAssert.AreEqual(new[] { "BBB", "AAA", "DDD", "CCC" }, list.ConvertAll(e => e.Initials));
+            CollectionAssert.AreEqual(new[] { "BBB", "AAA", "DDD", "CCC" }, list.ConvertAll(e => e.Name));
             Assert.AreEqual("BLUE", list[0].Team);
         }
 
@@ -60,6 +60,19 @@ namespace BreachPoint.Tests
         {
             Leaderboard.Add("ACC", Team.Blue, 120, 87);
             Assert.AreEqual(87, Leaderboard.Load()[0].Accuracy);
+        }
+
+        [Test]
+        public void SameName_KeepsOnlyTheBestScore()
+        {
+            Leaderboard.Add("Ahmed", Team.Red, 100, 80);
+            Assert.AreEqual(1, Leaderboard.Add("AHMED", Team.Blue, 60, 90), "a lower score keeps the old entry");
+            Assert.AreEqual(1, Leaderboard.Load().Count);
+            Assert.AreEqual(100, Leaderboard.Load()[0].Score);
+            Leaderboard.Add("ahmed", Team.Blue, 150, 95);
+            Assert.AreEqual(1, Leaderboard.Load().Count, "still one entry per name");
+            Assert.AreEqual(150, Leaderboard.Load()[0].Score);
+            Assert.AreEqual("AHMED", Leaderboard.Load()[0].Name);
         }
     }
 }

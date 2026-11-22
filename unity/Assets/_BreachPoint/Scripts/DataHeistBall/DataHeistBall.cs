@@ -91,7 +91,7 @@ namespace BreachPoint
             StolenThisHalf = 0;
             EncryptedLeft = LockLeft = EncryptCooldownLeft = LockCooldownLeft = 0;
             Kickoff(pause: 0f);
-            for (int i = 0; i < 2; i++) _veh[i].SetTag($"{_s.Players[i].Name} · {(i == AttackerIndex ? "ATTACKER" : "DEFENDER")}", _s.Players[i].Color);
+            for (int i = 0; i < 2; i++) _veh[i].SetTag($"{_s.Players[i].Display} · {(i == AttackerIndex ? "ATTACKER" : "DEFENDER")}", _s.Players[i].Color);
             _hud.OnHalfStart();
             foreach (var p in _s.Players) Haptics.LightBar(p.Controls, p.Color);
             _playing = play;
@@ -515,7 +515,7 @@ namespace BreachPoint
             Kicker = GameFlow.Kicker(this),
             Title = Title,
             Accent = Palette.Gold,
-            Body = "The attacker is inside OmanLNG's network and wants to smuggle data out.\n\n" + Legend() +
+            Body = "The attacker is inside Oman LNG's network and wants to smuggle data out.\n\n" + Legend() +
                    $"\n\nFirst half: {_s.Players[0].Tag} attacks, {_s.Players[1].Tag} defends.",
             Footer = "Both players: press A / ✕ when ready",
         };
@@ -568,7 +568,7 @@ namespace BreachPoint
             return new Card
             {
                 Kicker = "DATA HEIST BALL · RESULT",
-                Title = r.Winner < 0 ? "DRAW" : $"{_s.Players[r.Winner].Name} WINS",
+                Title = r.Winner < 0 ? "DRAW" : $"{_s.Players[r.Winner].Display} WINS",
                 Accent = r.Winner < 0 ? Palette.Gold : _s.Players[r.Winner].Color,
                 Body = Row(0) + "\n" + Row(1) + "\n\n" + Palette.Paint("LESSON", Palette.Gold) + "\n" + r.Lesson,
                 Footer = "Both players: press A / ✕ to continue",

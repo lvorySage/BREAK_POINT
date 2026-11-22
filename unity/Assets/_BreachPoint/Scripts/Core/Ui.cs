@@ -86,5 +86,18 @@ namespace BreachPoint
         }
 
         public static void SetBar(RectTransform fill, float v) => fill.anchorMax = new Vector2(Mathf.Clamp01(v), 1f);
+
+        /// <summary>A logo image of the given height, centred on an anchor point (keeps the image's aspect).</summary>
+        public static RawImage Logo(Transform parent, string name, Vector2 anchor, float height, Vector2 offset = default)
+        {
+            var tex = ArtKit.Brand(name);
+            if (tex == null) return null;
+            float w = height * tex.width / (float)tex.height;
+            var rt = Rect(parent, "Logo_" + name, anchor, anchor, offset - new Vector2(w, height) / 2f, offset + new Vector2(w, height) / 2f);
+            var img = rt.gameObject.AddComponent<RawImage>();
+            img.texture = tex;
+            img.raycastTarget = false;
+            return img;
+        }
     }
 }

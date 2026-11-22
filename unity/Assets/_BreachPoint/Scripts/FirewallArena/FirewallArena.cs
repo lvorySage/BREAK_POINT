@@ -114,7 +114,7 @@ namespace BreachPoint
             _veh[DefenderIndex].Teleport(new Vector3(9f, 0, 0));
             _veh[DefenderIndex].Face(Vector3.left);
             ApplyRoleVisuals();
-            for (int i = 0; i < 2; i++) _veh[i].SetTag($"{_s.Players[i].Name} · {(i == AttackerIndex ? "ATTACKER" : "DEFENDER")}", _s.Players[i].Color);
+            for (int i = 0; i < 2; i++) _veh[i].SetTag($"{_s.Players[i].Display} · {(i == AttackerIndex ? "ATTACKER" : "DEFENDER")}", _s.Players[i].Color);
             _hud.OnHalfStart();
             foreach (var p in _s.Players) Haptics.LightBar(p.Controls, p.Color);
             _playing = play;
@@ -548,7 +548,7 @@ namespace BreachPoint
             Title = "FIREWALL ARENA",
             Accent = Palette.Gold,
             Body =
-                "Protect OmanLNG's systems inside the SOC fort.\n" +
+                "Protect Oman LNG's systems inside the SOC fort.\n" +
                 "<b>ATTACKER</b> fires cyber-attacks at the three systems.  " +
                 "<b>DEFENDER</b> blocks them with the <b>matching defense</b>.\n\n" +
                 Legend() + "\n" +
@@ -608,7 +608,7 @@ namespace BreachPoint
             return new Card
             {
                 Kicker = "FIREWALL ARENA · RESULT",
-                Title = r.Winner < 0 ? "DRAW" : $"{_s.Players[r.Winner].Name} WINS",
+                Title = r.Winner < 0 ? "DRAW" : $"{_s.Players[r.Winner].Display} WINS",
                 Accent = r.Winner < 0 ? Palette.Gold : _s.Players[r.Winner].Color,
                 Body = Row(0) + "\n" + Row(1) + "\n\n" +
                        Palette.Paint("LESSON", Palette.Gold) + "\n" + r.Lesson + "\n\n" +
